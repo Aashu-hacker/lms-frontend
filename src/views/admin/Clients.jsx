@@ -117,7 +117,7 @@ export default function Users() {
           .filter((user) => user.role == 'client') // Exclude admin users
           .map((user) => ({
             ...user,
-            plainPassword: user.password // Assuming API returns plain password for display
+            plainPassword: user.plainPassword // Assuming API returns plain password for display
           }));
 
         setUsers(usersWithPasswords);
@@ -129,7 +129,7 @@ export default function Users() {
               ? [
                   {
                     ...res.data,
-                    plainPassword: res.data.password
+                    plainPassword: res.data.plainPassword
                   }
                 ]
               : []
