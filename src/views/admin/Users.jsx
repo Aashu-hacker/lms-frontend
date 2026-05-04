@@ -109,7 +109,35 @@ export default function Users() {
         headers: authHeaders
       });
 
-      setUsers(res.data || []);
+      // console.log('Fetched Users:', res.data);
+
+      if (res.data && Array.isArray(res.data)) {
+        // Skip admin users and map remaining users with plainPassword
+        const usersWithPasswords = res.data
+          .filter((user) => user.role !== 'admin') // Exclude admin users
+          .map((user) => ({
+            ...user,
+            plainPassword: user.password // Assuming API returns plain password for display
+          }));
+
+        setUsers(usersWithPasswords);
+      } else {
+        // If single object or fallback, also ensure admin is excluded
+        if (res.data?.role !== 'admin') {
+          setUsers(
+            res.data
+              ? [
+                  {
+                    ...res.data,
+                    plainPassword: res.data.password
+                  }
+                ]
+              : []
+          );
+        } else {
+          setUsers([]);
+        }
+      }
     } catch (error) {
       if (error.response?.status === 401) {
         // logoutUser();
@@ -304,7 +332,7 @@ export default function Users() {
       headerAlign: 'center', // Center header text
       align: 'center', // Center cell content
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
           <Tooltip title="View">
             <IconButton color="info" onClick={() => handleView(params.row)}>
               <Visibility />
@@ -397,6 +425,7 @@ export default function Users() {
               sm: '1fr 1fr'
             }}
             gap={2.5}
+            sx={{ mt: 2}}
           >
             {/* NAME */}
             <TextField label="Full Name" name="name" value={form.name} onChange={handleChange} fullWidth variant="outlined" />
@@ -515,7 +544,7 @@ export default function Users() {
         PaperProps={{
           sx: {
             borderRadius: 4,
-            overflow: 'hidden'
+            overflow: 'hidden',
           }
         }}
       >
@@ -533,7 +562,7 @@ export default function Users() {
           User Details
         </DialogTitle>
 
-        <DialogContent sx={{ py: 4, px: 3 }}>
+        <DialogContent sx={{ py: 4, px: 3, mt: 2}}>
           <Stack spacing={2}>
             {[
               { label: 'Name', value: viewUser?.name },
