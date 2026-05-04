@@ -29,14 +29,14 @@ const AdminRoutes = {
         </ProtectedRoute>
       )
     },
-    // {
-    //   path: 'clients',
-    //   element: (
-    //     <ProtectedRoute roles={['admin', 'manager']}>
-    //       <ClientsPage />
-    //     </ProtectedRoute>
-    //   )
-    // },
+    {
+      path: 'clients',
+      element: (
+        <ProtectedRoute roles={['admin', 'manager']}>
+          <ClientsPage />
+        </ProtectedRoute>
+      )
+    },
     // {
     //   path: 'templates',
     //   element: (

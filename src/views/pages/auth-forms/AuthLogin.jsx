@@ -80,7 +80,7 @@ export default function AuthLogin() {
         // window.location.href = '/dashboard/default';
         // OR:
         navigate('/dashboard/default');
-        window.location.reload();
+        // window.location.reload();
       }, 1500);
     } catch (err) {
       // ❌ Error Alert
