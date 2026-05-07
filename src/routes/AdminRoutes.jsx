@@ -1,5 +1,3 @@
-// ==============================|| src/routes/AdminRoutes.jsx ||============================== //
-
 import { lazy } from 'react';
 
 // project imports
@@ -10,8 +8,12 @@ import ProtectedRoute from './ProtectedRoute';
 // admin pages
 const UsersPage = Loadable(lazy(() => import('views/admin/Users')));
 const ClientsPage = Loadable(lazy(() => import('views/admin/Clients')));
-// const TemplatesPage = Loadable(lazy(() => import('views/admin/Templates')));
-// const ReportTypesPage = Loadable(lazy(() => import('views/admin/ReportTypes')));
+
+// Projects
+const ProjectsPage = Loadable(lazy(() => import('views/admin/projects/ProjectsListPage')));
+const AddProjectPage = Loadable(lazy(() => import('views/admin/projects/AddProject')));
+const EditProjectPage = Loadable(lazy(() => import('views/admin/projects/EditProject')));
+const ProjectDetailsPage = Loadable(lazy(() => import('views/admin/projects/ProjectDetails')));
 
 const AdminRoutes = {
   path: '/admin',
@@ -21,6 +23,7 @@ const AdminRoutes = {
     </ProtectedRoute>
   ),
   children: [
+    // 👤 Users
     {
       path: 'users',
       element: (
@@ -29,6 +32,8 @@ const AdminRoutes = {
         </ProtectedRoute>
       )
     },
+
+    // 🏢 Clients
     {
       path: 'clients',
       element: (
@@ -37,22 +42,46 @@ const AdminRoutes = {
         </ProtectedRoute>
       )
     },
-    // {
-    //   path: 'templates',
-    //   element: (
-    //     <ProtectedRoute roles={['admin', 'analyst']}>
-    //       <TemplatesPage />
-    //     </ProtectedRoute>
-    //   )
-    // },
-    // {
-    //   path: 'report-types',
-    //   element: (
-    //     <ProtectedRoute roles={['admin']}>
-    //       <ReportTypesPage />
-    //     </ProtectedRoute>
-    //   )
-    // }
+
+    // 📁 Projects Listing
+    {
+      path: 'projects',
+      element: (
+        <ProtectedRoute roles={['admin', 'manager', 'analyst']}>
+          <ProjectsPage />
+        </ProtectedRoute>
+      )
+    },
+
+    // ➕ Add Project
+    {
+      path: 'projects/add',
+      element: (
+        <ProtectedRoute roles={['admin', 'manager']}>
+          <AddProjectPage />
+        </ProtectedRoute>
+      )
+    },
+
+    // ✏️ Edit Project
+    {
+      path: 'projects/edit/:id',
+      element: (
+        <ProtectedRoute roles={['admin', 'manager']}>
+          <EditProjectPage />
+        </ProtectedRoute>
+      )
+    },
+
+    // 👁 View Project
+    {
+      path: 'projects/:id',
+      element: (
+        <ProtectedRoute roles={['admin', 'manager', 'analyst']}>
+          <ProjectDetailsPage />
+        </ProtectedRoute>
+      )
+    }
   ]
 };
 

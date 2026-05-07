@@ -55,7 +55,7 @@ const pages = {
       children: [
         {
           id: 'users',
-          title: 'Users Management',
+          title: 'Users',
           type: 'item',
           url: '/admin/users',
           icon: icons.IconUsers
@@ -68,19 +68,12 @@ const pages = {
           icon: icons.IconBuilding
         },
         {
-          id: 'templates',
-          title: 'Report Templates',
+          id: 'projects',
+          title: 'Projects',
           type: 'item',
-          url: '/admin/templates',
-          icon: icons.IconFileText
+          url: '/admin/projects',
+          icon: icons.IconGitBranch
         },
-        {
-          id: 'report-types',
-          title: 'Report Types',
-          type: 'item',
-          url: '/admin/report-types',
-          icon: icons.IconReport
-        }
       ]
     },
 
