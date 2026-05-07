@@ -5,47 +5,23 @@ import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import ProtectedRoute from './ProtectedRoute';
 
-// admin pages
-const UsersPage = Loadable(lazy(() => import('views/admin/Users')));
-const ClientsPage = Loadable(lazy(() => import('views/admin/Clients')));
-
 // Projects
 const ProjectsPage = Loadable(lazy(() => import('views/admin/projects/ProjectsListPage')));
 const AddProjectPage = Loadable(lazy(() => import('views/admin/projects/AddProject')));
 
-const AdminRoutes = {
-  path: '/admin',
+const AnalystRoutes = {
+  path: '/analyst',
   element: (
     <ProtectedRoute roles={['admin', 'manager', 'analyst']}>
       <MainLayout />
     </ProtectedRoute>
   ),
   children: [
-    // 👤 Users
-    {
-      path: 'users',
-      element: (
-        <ProtectedRoute roles={['admin']}>
-          <UsersPage />
-        </ProtectedRoute>
-      )
-    },
-
-    // 🏢 Clients
-    {
-      path: 'clients',
-      element: (
-        <ProtectedRoute roles={['admin', 'manager']}>
-          <ClientsPage />
-        </ProtectedRoute>
-      )
-    },
-
     // 📁 Projects Listing
     {
       path: 'projects',
       element: (
-        <ProtectedRoute roles={['admin', 'manager', 'analyst']}>
+        <ProtectedRoute roles={['analyst']}>
           <ProjectsPage />
         </ProtectedRoute>
       )
@@ -55,7 +31,7 @@ const AdminRoutes = {
     {
       path: 'projects/add',
       element: (
-        <ProtectedRoute roles={['admin', 'manager']}>
+        <ProtectedRoute roles={['analyst']}>
           <AddProjectPage />
         </ProtectedRoute>
       )
@@ -63,4 +39,4 @@ const AdminRoutes = {
   ]
 };
 
-export default AdminRoutes;
+export default AnalystRoutes;

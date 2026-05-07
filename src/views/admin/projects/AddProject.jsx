@@ -194,9 +194,7 @@ export default function AddProject() {
     setActiveStep((prev) => prev - 1);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     setSubmitting(true);
     setError('');
 
@@ -206,7 +204,7 @@ export default function AddProject() {
         shortDescription: form.shortDescription,
         priority: form.priority,
         dueDate: form.dueDate,
-        projectOwners: form.projectOwners.map((item) => item.value),
+        manager: form.projectOwners.map((item) => item.value),
         analysts: form.analysts.map((item) => item.value),
         ngsApplications: form.ngsApplications.map((item) => item.value)
       };
@@ -284,7 +282,14 @@ export default function AddProject() {
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <Box
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && activeStep !== steps.length - 1) {
+              e.preventDefault();
+            }
+          }}
+        >
           {/* STEP 1 */}
           {activeStep === 0 && (
             <Grid container spacing={3}>
@@ -352,6 +357,7 @@ export default function AddProject() {
                   isMulti
                   options={managers}
                   styles={selectStyles}
+                  value={form.projectOwners}
                   isLoading={loadingUsers}
                   onChange={(selected) => handleSelectChange('projectOwners', selected)}
                   placeholder="Search managers or add new user"
@@ -367,6 +373,7 @@ export default function AddProject() {
                 <Select
                   isMulti
                   options={analysts}
+                  value={form.analysts}
                   styles={selectStyles}
                   isLoading={loadingUsers}
                   onChange={(selected) => handleSelectChange('analysts', selected)}
@@ -409,7 +416,7 @@ export default function AddProject() {
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Box>
               {activeStep > 0 && (
-                <Button onClick={handleBack} size="large">
+                <Button type="button" onClick={handleBack} size="large">
                   Back
                 </Button>
               )}
@@ -421,7 +428,7 @@ export default function AddProject() {
               </Button>
 
               {activeStep < steps.length - 1 ? (
-                <Button variant="contained" color="secondary" onClick={handleNext}>
+                <Button type="button" variant="contained" color="secondary" onClick={handleNext}>
                   Continue
                 </Button>
               ) : (
@@ -432,13 +439,14 @@ export default function AddProject() {
                   size="large"
                   startIcon={submitting ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
                   disabled={submitting}
+                  onClick={handleSubmit}
                 >
                   {submitting ? 'Creating...' : 'Create Project'}
                 </Button>
               )}
             </Stack>
           </Stack>
-        </form>
+        </Box>
       </CardContent>
     </MainCard>
   );
