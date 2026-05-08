@@ -50,6 +50,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import GroupsIcon from '@mui/icons-material/Groups';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import MainCard from 'ui-component/cards/MainCard';
 import REACT_APP_BASE_URL from 'utils/api';
@@ -387,6 +388,49 @@ export default function ProjectsListPage() {
     }
   };
 
+  // ==============================|| DELETE PROJECT ||============================== //
+  const handleDeleteProject = async (projectId, projectTitle) => {
+    const result = await Swal.fire({
+      title: 'Delete Project?',
+      text: `Are you sure you want to delete "${projectTitle}"? This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, Delete It'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setLoading(true);
+
+      const response = await axios.delete(`${REACT_APP_BASE_URL}/projects/${projectId}`, {
+        headers: authHeaders
+      });
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Deleted!',
+        text: response.data.message || 'Project deleted successfully.',
+        confirmButtonColor: '#3085d6'
+      });
+
+      fetchProjects(); // Refresh project list
+    } catch (error) {
+      console.error('Delete Error:', error);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Delete Failed',
+        text: error.response?.data?.message || 'Something went wrong while deleting the project.',
+        confirmButtonColor: '#d33'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ==============================|| FILTER ||============================== //
   const filteredProjects = projects.filter((project) => {
     const q = search.toLowerCase();
@@ -568,26 +612,42 @@ export default function ProjectsListPage() {
         <Chip label={params.row.status || 'Active'} color={params.row.status === 'Completed' ? 'info' : 'success'} size="small" />
       )
     },
+    // ==============================|| ACTION COLUMN ||============================== //
     {
       field: 'actions',
       headerName: 'Actions',
       sortable: false,
-      minWidth: 150,
-      renderCell: (params) => (
-        <Stack direction="row" spacing={1} sx={{ pt: 1, pb: 2 }}>
-          <Tooltip title="View">
-            <IconButton color="primary" onClick={() => handleView(params.row)}>
-              <VisibilityIcon />
-            </IconButton>
-          </Tooltip>
+      minWidth: 200,
+      renderCell: (params) => {
+        const user = JSON.parse(localStorage.getItem('user'));
 
-          <Tooltip title="Edit">
-            <IconButton color="secondary" onClick={() => handleOpenEdit(params.row)}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      )
+        return (
+          <Stack direction="row" spacing={1} sx={{ pt: 1, pb: 2 }}>
+            {/* View */}
+            <Tooltip title="View">
+              <IconButton color="primary" onClick={() => handleView(params.row)}>
+                <VisibilityIcon />
+              </IconButton>
+            </Tooltip>
+
+            {/* Edit */}
+            <Tooltip title="Edit">
+              <IconButton color="secondary" onClick={() => handleOpenEdit(params.row)}>
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+
+            {/* Delete - Only Admin */}
+            {user?.role?.toLowerCase() === 'admin' && (
+              <Tooltip title="Delete">
+                <IconButton color="error" onClick={() => handleDeleteProject(params.row._id, params.row.title)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Stack>
+        );
+      }
     }
   ];
 

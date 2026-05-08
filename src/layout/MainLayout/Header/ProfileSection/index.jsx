@@ -82,6 +82,16 @@ export default function ProfileSection() {
     navigate('/');
   };
 
+  // ==============================|| GET LOGGED-IN USER ||============================== //
+  const loggedUser = JSON.parse(localStorage.getItem('user')) || {};
+
+  const userName = loggedUser?.name || 'Guest User';
+  const userRole = loggedUser?.role?.charAt(0).toUpperCase() + loggedUser?.role?.slice(1).toLowerCase() || 'User';
+
+  const currentHour = new Date().getHours();
+
+  const greeting = currentHour < 12 ? 'Good Morning' : currentHour < 17 ? 'Good Afternoon' : 'Good Evening';
+
   return (
     <>
       <Chip
@@ -130,14 +140,22 @@ export default function ProfileSection() {
                   <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
                     <Box sx={{ p: 2, pb: 0 }}>
                       <Stack>
+                        {/* Greeting */}
                         <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-                          <Typography variant="h4">Good Morning,</Typography>
-                          <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                            Johne Doe
+                          <Typography variant="h4">{greeting},</Typography>
+                          <Typography component="span" variant="h4" sx={{ fontWeight: 500, color: 'primary.main' }}>
+                            {userName}
                           </Typography>
                         </Stack>
-                        <Typography variant="subtitle2">Project Admin</Typography>
+
+                        {/* Role */}
+                        <Typography variant="subtitle2" sx={{ textTransform: 'capitalize', color: 'text.secondary' }}>
+                          Role: {userRole}
+                        </Typography>
+
                       </Stack>
+
+                      {/* Search */}
                       <OutlinedInput
                         sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
                         id="input-search-profile"
@@ -150,10 +168,12 @@ export default function ProfileSection() {
                           </InputAdornment>
                         }
                         aria-describedby="search-helper-text"
-                        slotProps={{ input: { 'aria-label': 'weight' } }}
+                        slotProps={{ input: { 'aria-label': 'search profile options' } }}
                       />
+
                       <Divider />
                     </Box>
+
                     <Box
                       sx={{
                         p: 2,
@@ -164,23 +184,8 @@ export default function ProfileSection() {
                         '&::-webkit-scrollbar': { width: 5 }
                       }}
                     >
-                      {/* <UpgradePlanCard /> */}
                       <Divider />
-                      {/* <Card sx={{ bgcolor: 'primary.light', my: 2 }}>
-                        <CardContent>
-                          <Stack sx={{ gap: 3 }}>
-                            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                              <Typography variant="subtitle1">Start DND Mode</Typography>
-                              <Switch color="primary" checked={sdm} onChange={(e) => setSdm(e.target.checked)} name="sdm" size="small" />
-                            </Stack>
-                            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                              <Typography variant="subtitle1">Allow Notifications</Typography>
-                              <Switch checked={notification} onChange={(e) => setNotification(e.target.checked)} name="sdm" size="small" />
-                            </Stack>
-                          </Stack>
-                        </CardContent>
-                      </Card> */}
-                      <Divider />
+
                       <List
                         component="nav"
                         sx={{
@@ -191,34 +196,20 @@ export default function ProfileSection() {
                           '& .MuiListItemButton-root': { mt: 0.5 }
                         }}
                       >
-                        {/* <ListItemButton sx={{ borderRadius: `${borderRadius}px` }}>
-                          <ListItemIcon>
-                            <IconSettings stroke={1.5} size="20px" />
-                          </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
-                        </ListItemButton> */}
-                        {/* <ListItemButton sx={{ borderRadius: `${borderRadius}px` }}>
+                        {/* User Details */}
+                        <ListItemButton sx={{ borderRadius: `${borderRadius}px` }}>
                           <ListItemIcon>
                             <IconUser stroke={1.5} size="20px" />
                           </ListItemIcon>
                           <ListItemText
-                            primary={
-                              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">Social Profile</Typography>
-                                <Chip
-                                  slotProps={{
-                                    label: { sx: { mt: 0.25 } }
-                                  }}
-                                  label="02"
-                                  variant="filled"
-                                  size="small"
-                                  color="warning"
-                                />
-                              </Stack>
-                            }
+                            primary={<Typography variant="body2">{userName}</Typography>}
+                            secondary={loggedUser?.email || 'No email available'}
                           />
-                        </ListItemButton> */}
+                        </ListItemButton>
 
+                        <Divider sx={{ my: 1 }} />
+
+                        {/* Logout */}
                         <ListItemButton sx={{ borderRadius: `${borderRadius}px` }} onClick={handleLogout}>
                           <ListItemIcon>
                             <IconLogout stroke={1.5} size="20px" />

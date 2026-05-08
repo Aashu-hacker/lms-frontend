@@ -3,6 +3,7 @@ import axios from 'axios';
 import CreatableSelect from 'react-select/creatable';
 import Select from 'react-select';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 // material-ui
 import {
@@ -41,16 +42,146 @@ import SaveIcon from '@mui/icons-material/Save';
 import MainCard from 'ui-component/cards/MainCard';
 import REACT_APP_BASE_URL from 'utils/api';
 
+// ==============================|| NGS APPLICATION OPTIONS ||============================== //
 const ngsOptions = [
-  { label: 'Single-cell RNA-seq (scRNA-seq)', value: 'Single-cell RNA-seq (scRNA-seq)' },
-  { label: 'Bulk RNA-seq (short-read)', value: 'Bulk RNA-seq (short-read)' },
-  { label: 'Whole-genome sequencing (WGS)', value: 'Whole-genome sequencing (WGS)' },
-  { label: 'Whole-exome sequencing (WES)', value: 'Whole-exome sequencing (WES)' },
-  { label: 'Bulk ATAC-seq', value: 'Bulk ATAC-seq' },
-  { label: 'MERSCOPE', value: 'MERSCOPE' },
-  { label: 'Visium', value: 'Visium' },
-  { label: 'Proteomics (LC-MS/MS, DIA, TMT)', value: 'Proteomics (LC-MS/MS, DIA, TMT)' },
-  { label: 'Clinical omics (liquid biopsy, cfDNA, ctDNA)', value: 'Clinical omics (liquid biopsy, cfDNA, ctDNA)' }
+  // ==============================|| EXPRESSION PROFILING ||============================== //
+  {
+    label: 'Expression Profiling',
+    options: [
+      { label: 'Single-cell RNA-seq (scRNA-seq)', value: 'Single-cell RNA-seq (scRNA-seq)' },
+      { label: 'Bulk RNA-seq (short-read)', value: 'Bulk RNA-seq (short-read)' },
+      {
+        label: 'Bulk RNA-seq (long-read; e.g., Iso-Seq, Nanopore)',
+        value: 'Bulk RNA-seq (long-read; e.g., Iso-Seq, Nanopore)'
+      },
+      {
+        label: 'Single-cell BCR/TCR-seq (scBCR-seq / scTCR-seq)',
+        value: 'Single-cell BCR/TCR-seq (scBCR-seq / scTCR-seq)'
+      },
+      { label: 'Single-nucleus RNA-seq (snRNA-seq)', value: 'Single-nucleus RNA-seq (snRNA-seq)' },
+      {
+        label: 'Spatially resolved transcriptomics (low-plex vs high-plex distinction)',
+        value: 'Spatially resolved transcriptomics (low-plex vs high-plex distinction)'
+      },
+      { label: 'Total RNA-seq (including non-coding RNAs)', value: 'Total RNA-seq (including non-coding RNAs)' },
+      { label: 'Small RNA-seq (miRNA, piRNA)', value: 'Small RNA-seq (miRNA, piRNA)' },
+      { label: 'Ribosome profiling (Ribo-seq; translation-level)', value: 'Ribosome profiling (Ribo-seq; translation-level)' },
+      {
+        label: 'Nascent transcription assays (GRO-seq, PRO-seq)',
+        value: 'Nascent transcription assays (GRO-seq, PRO-seq)'
+      }
+    ]
+  },
+
+  // ==============================|| GENOMIC VARIATIONS ||============================== //
+  {
+    label: 'Genomic Variations',
+    options: [
+      { label: 'Whole-genome sequencing (WGS)', value: 'Whole-genome sequencing (WGS)' },
+      { label: 'Whole-exome sequencing (WES)', value: 'Whole-exome sequencing (WES)' },
+      { label: 'Targeted sequencing panels', value: 'Targeted sequencing panels' },
+      { label: 'Copy number variation (CNV-seq / shallow WGS)', value: 'Copy number variation (CNV-seq / shallow WGS)' },
+      {
+        label: 'Structural variation (SV detection; long-read or paired-end)',
+        value: 'Structural variation (SV detection; long-read or paired-end)'
+      },
+      { label: 'Single-cell DNA-seq', value: 'Single-cell DNA-seq' },
+      { label: 'Mitochondrial genome sequencing', value: 'Mitochondrial genome sequencing' }
+    ]
+  },
+
+  // ==============================|| EPIGENOME ||============================== //
+  {
+    label: 'Epigenome',
+    options: [
+      { label: 'Bulk ChIP-seq', value: 'Bulk ChIP-seq' },
+      { label: 'Bulk ATAC-seq', value: 'Bulk ATAC-seq' },
+      { label: 'Bisulfite sequencing (WGBS)', value: 'Bisulfite sequencing (WGBS)' },
+      {
+        label: 'Reduced Representation Bisulfite Sequencing (RRBS)',
+        value: 'Reduced Representation Bisulfite Sequencing (RRBS)'
+      },
+      { label: 'Single-cell ATAC-seq (scATAC-seq)', value: 'Single-cell ATAC-seq (scATAC-seq)' },
+      {
+        label: 'Single-cell ChIP-seq (scChIP-seq; still emerging)',
+        value: 'Single-cell ChIP-seq (scChIP-seq; still emerging)'
+      },
+      { label: 'CUT&RUN', value: 'CUT&RUN' },
+      { label: 'CUT&Tag', value: 'CUT&Tag' },
+      { label: 'Hi-C / 3C / 4C / 5C (chromatin conformation)', value: 'Hi-C / 3C / 4C / 5C (chromatin conformation)' },
+      { label: 'Single-cell multiome (scRNA + scATAC)', value: 'Single-cell multiome (scRNA + scATAC)' }
+    ]
+  },
+
+  // ==============================|| SPATIAL PROFILING ||============================== //
+  {
+    label: 'Spatial Profiling',
+    options: [
+      { label: 'MERSCOPE', value: 'MERSCOPE' },
+      { label: 'Visium', value: 'Visium' },
+      { label: 'Xenium', value: 'Xenium' },
+      { label: 'Slide-seq / Slide-seqV2', value: 'Slide-seq / Slide-seqV2' },
+      { label: 'Stereo-seq', value: 'Stereo-seq' },
+      { label: 'MERFISH / seqFISH', value: 'MERFISH / seqFISH' },
+      { label: 'Imaging mass cytometry (IMC)', value: 'Imaging mass cytometry (IMC)' },
+      { label: 'CODEX', value: 'CODEX' }
+    ]
+  },
+
+  // ==============================|| GENOME RECONSTRUCTION ||============================== //
+  {
+    label: 'Genome Reconstruction',
+    options: [
+      { label: 'Short-read genome assembly', value: 'Short-read genome assembly' },
+      { label: 'Long-read genome assembly (PacBio / Nanopore)', value: 'Long-read genome assembly (PacBio / Nanopore)' },
+      { label: 'Hybrid assembly (short + long reads)', value: 'Hybrid assembly (short + long reads)' },
+      { label: 'Hi-C scaffolding', value: 'Hi-C scaffolding' },
+      { label: 'Metagenome-assembled genomes (MAGs)', value: 'Metagenome-assembled genomes (MAGs)' },
+      { label: 'Pangenome construction', value: 'Pangenome construction' }
+    ]
+  },
+
+  // ==============================|| MICROBIAL DIVERSITY ||============================== //
+  {
+    label: 'Microbial Diversity',
+    options: [
+      { label: 'Amplicon sequencing (16S/18S/ITS)', value: 'Amplicon sequencing (16S/18S/ITS)' },
+      { label: 'Shotgun metagenomics', value: 'Shotgun metagenomics' },
+      { label: 'Metatranscriptomics', value: 'Metatranscriptomics' },
+      { label: 'Metaproteomics', value: 'Metaproteomics' },
+      { label: 'Metabolomics (microbiome-associated)', value: 'Metabolomics (microbiome-associated)' },
+      { label: 'Single-cell genomics (microbial)', value: 'Single-cell genomics (microbial)' }
+    ]
+  },
+
+  // ==============================|| MULTI-OMICS / CUSTOMIZED ||============================== //
+  {
+    label: 'Other (Multi-omics / Customized)',
+    options: [
+      { label: 'Proteomics (LC-MS/MS, DIA, TMT)', value: 'Proteomics (LC-MS/MS, DIA, TMT)' },
+      { label: 'Phosphoproteomics', value: 'Phosphoproteomics' },
+      { label: 'Metabolomics (LC-MS, GC-MS)', value: 'Metabolomics (LC-MS, GC-MS)' },
+      { label: 'Lipidomics', value: 'Lipidomics' },
+      { label: 'Single-cell proteomics (CyTOF, CITE-seq)', value: 'Single-cell proteomics (CyTOF, CITE-seq)' },
+      {
+        label: 'Multi-omics integration (e.g., scRNA + ATAC + protein)',
+        value: 'Multi-omics integration (e.g., scRNA + ATAC + protein)'
+      },
+      { label: 'Perturb-seq / CRISPR screens', value: 'Perturb-seq / CRISPR screens' },
+      { label: 'Lineage tracing (CRISPR barcoding)', value: 'Lineage tracing (CRISPR barcoding)' },
+      { label: 'Synthetic spike-ins (e.g., SIRVs, ERCC)', value: 'Synthetic spike-ins (e.g., SIRVs, ERCC)' },
+      {
+        label: 'Clinical omics (liquid biopsy, cfDNA, ctDNA)',
+        value: 'Clinical omics (liquid biopsy, cfDNA, ctDNA)'
+      }
+    ]
+  },
+
+  // ==============================|| OTHER ||============================== //
+  {
+    label: 'Other',
+    options: [{ label: 'Custom / User Defined', value: 'Custom / User Defined' }]
+  }
 ];
 
 const steps = ['Project Details', 'Team Assignment', 'NGS Applications'];
@@ -204,20 +335,48 @@ export default function AddProject() {
         shortDescription: form.shortDescription,
         priority: form.priority,
         dueDate: form.dueDate,
-        manager: form.projectOwners.map((item) => item.value),
-        analysts: form.analysts.map((item) => item.value),
-        ngsApplications: form.ngsApplications.map((item) => item.value)
+
+        // ✅ Send manager IDs
+        manager: (form.projectOwners || []).map((item) => item.value),
+
+        // ✅ Send analyst IDs
+        analysts: (form.analysts || []).map((item) => item.value),
+
+        // ✅ Send NGS Applications
+        ngsApplications: (form.ngsApplications || []).map((item) => item.value || item.label)
       };
 
-      const data = await axios.post(`${REACT_APP_BASE_URL}/projects`, payload, {
+      // ✅ Correct axios response variable
+      const response = await axios.post(`${REACT_APP_BASE_URL}/projects`, payload, {
         headers: authHeaders
       });
 
-      console.log(data);
+      // ==============================|| SUCCESS ALERT ||============================== //
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: response.data?.message || 'Project created successfully!',
+        confirmButtonColor: '#3085d6'
+      });
+
+      // Optional reset form
+      // setForm(initialState);
+
       navigate('/admin/projects');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create project');
-      console.log(err);
+      const errorMessage = err.response?.data?.message || 'Failed to create project';
+
+      setError(errorMessage);
+
+      console.error('Project Create Error:', err);
+
+      // ==============================|| ERROR ALERT ||============================== //
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed',
+        text: errorMessage,
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setSubmitting(false);
     }
@@ -385,6 +544,7 @@ export default function AddProject() {
 
           {/* STEP 3 */}
           {activeStep === 2 && (
+            // ==============================|| COMPONENT ||============================== //
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Typography variant="h5" gutterBottom>
@@ -404,7 +564,9 @@ export default function AddProject() {
                       ngsApplications: selected || []
                     })
                   }
-                  placeholder="Search, select or create custom applications"
+                  placeholder="Type or select NGS applications..."
+                  removeSelected={false}
+                  formatGroupLabel={(group) => <div style={{ fontWeight: 700, fontSize: 13 }}>{group.label}</div>}
                 />
               </Grid>
             </Grid>
