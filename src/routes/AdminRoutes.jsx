@@ -12,6 +12,7 @@ const ClientsPage = Loadable(lazy(() => import('views/admin/Clients')));
 // Projects
 const ProjectsPage = Loadable(lazy(() => import('views/admin/projects/ProjectsListPage')));
 const AddProjectPage = Loadable(lazy(() => import('views/admin/projects/AddProject')));
+const ViewProjectVersions = Loadable(lazy(() => import('views/admin/projects/ViewProjectVersions')));
 
 const AdminRoutes = {
   path: '/admin',
@@ -60,6 +61,16 @@ const AdminRoutes = {
         </ProtectedRoute>
       )
     },
+    // ➕ View Project Versions
+
+    {
+      path: 'projects/:id/versions',
+      element: (
+        <ProtectedRoute roles={['admin', 'manager', 'analyst']}>
+          <ViewProjectVersions />
+        </ProtectedRoute>
+      )
+    }
   ]
 };
 

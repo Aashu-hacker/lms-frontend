@@ -64,15 +64,144 @@ const getProgressColor = (progress) => {
 };
 
 const ngsOptions = [
-  { label: 'Single-cell RNA-seq (scRNA-seq)', value: 'Single-cell RNA-seq (scRNA-seq)' },
-  { label: 'Bulk RNA-seq (short-read)', value: 'Bulk RNA-seq (short-read)' },
-  { label: 'Whole-genome sequencing (WGS)', value: 'Whole-genome sequencing (WGS)' },
-  { label: 'Whole-exome sequencing (WES)', value: 'Whole-exome sequencing (WES)' },
-  { label: 'Bulk ATAC-seq', value: 'Bulk ATAC-seq' },
-  { label: 'MERSCOPE', value: 'MERSCOPE' },
-  { label: 'Visium', value: 'Visium' },
-  { label: 'Proteomics (LC-MS/MS, DIA, TMT)', value: 'Proteomics (LC-MS/MS, DIA, TMT)' },
-  { label: 'Clinical omics (liquid biopsy, cfDNA, ctDNA)', value: 'Clinical omics (liquid biopsy, cfDNA, ctDNA)' }
+  // ==============================|| EXPRESSION PROFILING ||============================== //
+  {
+    label: 'Expression Profiling',
+    options: [
+      { label: 'Single-cell RNA-seq (scRNA-seq)', value: 'Single-cell RNA-seq (scRNA-seq)' },
+      { label: 'Bulk RNA-seq (short-read)', value: 'Bulk RNA-seq (short-read)' },
+      {
+        label: 'Bulk RNA-seq (long-read; e.g., Iso-Seq, Nanopore)',
+        value: 'Bulk RNA-seq (long-read; e.g., Iso-Seq, Nanopore)'
+      },
+      {
+        label: 'Single-cell BCR/TCR-seq (scBCR-seq / scTCR-seq)',
+        value: 'Single-cell BCR/TCR-seq (scBCR-seq / scTCR-seq)'
+      },
+      { label: 'Single-nucleus RNA-seq (snRNA-seq)', value: 'Single-nucleus RNA-seq (snRNA-seq)' },
+      {
+        label: 'Spatially resolved transcriptomics (low-plex vs high-plex distinction)',
+        value: 'Spatially resolved transcriptomics (low-plex vs high-plex distinction)'
+      },
+      { label: 'Total RNA-seq (including non-coding RNAs)', value: 'Total RNA-seq (including non-coding RNAs)' },
+      { label: 'Small RNA-seq (miRNA, piRNA)', value: 'Small RNA-seq (miRNA, piRNA)' },
+      { label: 'Ribosome profiling (Ribo-seq; translation-level)', value: 'Ribosome profiling (Ribo-seq; translation-level)' },
+      {
+        label: 'Nascent transcription assays (GRO-seq, PRO-seq)',
+        value: 'Nascent transcription assays (GRO-seq, PRO-seq)'
+      }
+    ]
+  },
+
+  // ==============================|| GENOMIC VARIATIONS ||============================== //
+  {
+    label: 'Genomic Variations',
+    options: [
+      { label: 'Whole-genome sequencing (WGS)', value: 'Whole-genome sequencing (WGS)' },
+      { label: 'Whole-exome sequencing (WES)', value: 'Whole-exome sequencing (WES)' },
+      { label: 'Targeted sequencing panels', value: 'Targeted sequencing panels' },
+      { label: 'Copy number variation (CNV-seq / shallow WGS)', value: 'Copy number variation (CNV-seq / shallow WGS)' },
+      {
+        label: 'Structural variation (SV detection; long-read or paired-end)',
+        value: 'Structural variation (SV detection; long-read or paired-end)'
+      },
+      { label: 'Single-cell DNA-seq', value: 'Single-cell DNA-seq' },
+      { label: 'Mitochondrial genome sequencing', value: 'Mitochondrial genome sequencing' }
+    ]
+  },
+
+  // ==============================|| EPIGENOME ||============================== //
+  {
+    label: 'Epigenome',
+    options: [
+      { label: 'Bulk ChIP-seq', value: 'Bulk ChIP-seq' },
+      { label: 'Bulk ATAC-seq', value: 'Bulk ATAC-seq' },
+      { label: 'Bisulfite sequencing (WGBS)', value: 'Bisulfite sequencing (WGBS)' },
+      {
+        label: 'Reduced Representation Bisulfite Sequencing (RRBS)',
+        value: 'Reduced Representation Bisulfite Sequencing (RRBS)'
+      },
+      { label: 'Single-cell ATAC-seq (scATAC-seq)', value: 'Single-cell ATAC-seq (scATAC-seq)' },
+      {
+        label: 'Single-cell ChIP-seq (scChIP-seq; still emerging)',
+        value: 'Single-cell ChIP-seq (scChIP-seq; still emerging)'
+      },
+      { label: 'CUT&RUN', value: 'CUT&RUN' },
+      { label: 'CUT&Tag', value: 'CUT&Tag' },
+      { label: 'Hi-C / 3C / 4C / 5C (chromatin conformation)', value: 'Hi-C / 3C / 4C / 5C (chromatin conformation)' },
+      { label: 'Single-cell multiome (scRNA + scATAC)', value: 'Single-cell multiome (scRNA + scATAC)' }
+    ]
+  },
+
+  // ==============================|| SPATIAL PROFILING ||============================== //
+  {
+    label: 'Spatial Profiling',
+    options: [
+      { label: 'MERSCOPE', value: 'MERSCOPE' },
+      { label: 'Visium', value: 'Visium' },
+      { label: 'Xenium', value: 'Xenium' },
+      { label: 'Slide-seq / Slide-seqV2', value: 'Slide-seq / Slide-seqV2' },
+      { label: 'Stereo-seq', value: 'Stereo-seq' },
+      { label: 'MERFISH / seqFISH', value: 'MERFISH / seqFISH' },
+      { label: 'Imaging mass cytometry (IMC)', value: 'Imaging mass cytometry (IMC)' },
+      { label: 'CODEX', value: 'CODEX' }
+    ]
+  },
+
+  // ==============================|| GENOME RECONSTRUCTION ||============================== //
+  {
+    label: 'Genome Reconstruction',
+    options: [
+      { label: 'Short-read genome assembly', value: 'Short-read genome assembly' },
+      { label: 'Long-read genome assembly (PacBio / Nanopore)', value: 'Long-read genome assembly (PacBio / Nanopore)' },
+      { label: 'Hybrid assembly (short + long reads)', value: 'Hybrid assembly (short + long reads)' },
+      { label: 'Hi-C scaffolding', value: 'Hi-C scaffolding' },
+      { label: 'Metagenome-assembled genomes (MAGs)', value: 'Metagenome-assembled genomes (MAGs)' },
+      { label: 'Pangenome construction', value: 'Pangenome construction' }
+    ]
+  },
+
+  // ==============================|| MICROBIAL DIVERSITY ||============================== //
+  {
+    label: 'Microbial Diversity',
+    options: [
+      { label: 'Amplicon sequencing (16S/18S/ITS)', value: 'Amplicon sequencing (16S/18S/ITS)' },
+      { label: 'Shotgun metagenomics', value: 'Shotgun metagenomics' },
+      { label: 'Metatranscriptomics', value: 'Metatranscriptomics' },
+      { label: 'Metaproteomics', value: 'Metaproteomics' },
+      { label: 'Metabolomics (microbiome-associated)', value: 'Metabolomics (microbiome-associated)' },
+      { label: 'Single-cell genomics (microbial)', value: 'Single-cell genomics (microbial)' }
+    ]
+  },
+
+  // ==============================|| MULTI-OMICS / CUSTOMIZED ||============================== //
+  {
+    label: 'Other (Multi-omics / Customized)',
+    options: [
+      { label: 'Proteomics (LC-MS/MS, DIA, TMT)', value: 'Proteomics (LC-MS/MS, DIA, TMT)' },
+      { label: 'Phosphoproteomics', value: 'Phosphoproteomics' },
+      { label: 'Metabolomics (LC-MS, GC-MS)', value: 'Metabolomics (LC-MS, GC-MS)' },
+      { label: 'Lipidomics', value: 'Lipidomics' },
+      { label: 'Single-cell proteomics (CyTOF, CITE-seq)', value: 'Single-cell proteomics (CyTOF, CITE-seq)' },
+      {
+        label: 'Multi-omics integration (e.g., scRNA + ATAC + protein)',
+        value: 'Multi-omics integration (e.g., scRNA + ATAC + protein)'
+      },
+      { label: 'Perturb-seq / CRISPR screens', value: 'Perturb-seq / CRISPR screens' },
+      { label: 'Lineage tracing (CRISPR barcoding)', value: 'Lineage tracing (CRISPR barcoding)' },
+      { label: 'Synthetic spike-ins (e.g., SIRVs, ERCC)', value: 'Synthetic spike-ins (e.g., SIRVs, ERCC)' },
+      {
+        label: 'Clinical omics (liquid biopsy, cfDNA, ctDNA)',
+        value: 'Clinical omics (liquid biopsy, cfDNA, ctDNA)'
+      }
+    ]
+  },
+
+  // ==============================|| OTHER ||============================== //
+  {
+    label: 'Other',
+    options: [{ label: 'Custom / User Defined', value: 'Custom / User Defined' }]
+  }
 ];
 
 const getSafeValue = (value, fallback = 'N/A') => {
@@ -280,6 +409,8 @@ export default function ProjectsListPage() {
       shortDescription: project.shortDescription || '',
       priority: project.priority || 'Medium',
       dueDate: project.dueDate ? project.dueDate.split('T')[0] : '',
+      progress: project.progress || 0,
+      status: project.status || 'Active',
 
       // ✅ Normalize managers
       managers: project.manager
@@ -342,6 +473,7 @@ export default function ProjectsListPage() {
     priority: form.priority,
     dueDate: form.dueDate,
     progress: form.progress,
+    status: form.status,
 
     // ✅ Send only IDs
     // ✅ Manager should be single ID (not managers array)
@@ -465,7 +597,7 @@ export default function ProjectsListPage() {
       field: 'projectId',
       headerName: 'Project ID',
       flex: 1,
-      minWidth: 120,
+      minWidth: 110,
       renderCell: (params) => (
         <Typography variant="caption" color="primary" fontWeight={600}>
           {params.row.projectId}
@@ -490,7 +622,7 @@ export default function ProjectsListPage() {
       field: 'description',
       headerName: 'Project Description',
       flex: 1.5,
-      minWidth: 240,
+      minWidth: 220,
       renderCell: (params) => (
         <Box>
           <Typography variant="caption" color="textSecondary">
@@ -607,22 +739,86 @@ export default function ProjectsListPage() {
       field: 'status',
       headerName: 'Status',
       flex: 0.8,
-      minWidth: 140,
-      renderCell: (params) => (
-        <Chip label={params.row.status || 'Active'} color={params.row.status === 'Completed' ? 'info' : 'success'} size="small" />
-      )
+      minWidth: 150,
+      renderCell: (params) => {
+        const status = params.row.status || 'Active';
+
+        const statusColor = {
+          Active: 'success',
+          'In Progress': 'warning',
+          Completed: 'info',
+          'On Hold': 'default'
+        };
+
+        return <Chip label={status} color={statusColor[status] || 'default'} size="small" />;
+      }
+    },
+    {
+      field: 'versions',
+      headerName: 'Versions',
+      flex: 1.2,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params) => {
+        const versions = params.row.versions || [];
+
+        return (
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{
+              width: '100%',
+              height: '100%',
+              py: 1,
+              flexWrap: 'wrap'
+            }}
+          >
+            {/* Version Chips */}
+            {versions.length > 0 ? (
+              <>
+                {versions.slice(0, 2).map((version) => (
+                  <Chip
+                    key={version._id}
+                    label={`v${version.version}`}
+                    size="small"
+                    color={version.status === 'published' ? 'success' : version.status === 'archived' ? 'default' : 'primary'}
+                    variant="outlined"
+                  />
+                ))}
+
+                {versions.length > 2 && <Chip label={`+${versions.length - 2}`} size="small" sx={{ fontWeight: 600 }} />}
+              </>
+            ) : null}
+
+            {/* View Button */}
+            <Tooltip title="View All Versions">
+              <IconButton
+                size="small"
+                color="secondary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/admin/projects/${params.row._id}/versions`);
+                }}
+              >
+                <VisibilityIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        );
+      }
     },
     // ==============================|| ACTION COLUMN ||============================== //
     {
       field: 'actions',
       headerName: 'Actions',
       sortable: false,
-      minWidth: 200,
+      minWidth: 180,
       renderCell: (params) => {
         const user = JSON.parse(localStorage.getItem('user'));
 
         return (
-          <Stack direction="row" spacing={1} sx={{ pt: 1, pb: 2 }}>
+          <Stack direction="row" sx={{ pt: 1, pb: 2 }}>
             {/* View */}
             <Tooltip title="View">
               <IconButton color="primary" onClick={() => handleView(params.row)}>
@@ -696,45 +892,194 @@ export default function ProjectsListPage() {
       </Box>
 
       {/* ================= VIEW MODAL ================= */}
-      <Dialog open={viewOpen} onClose={() => setViewOpen(false)} fullWidth maxWidth="sm" TransitionComponent={Fade}>
-        <DialogTitle>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="h4">Project Details</Typography>
+      <Dialog
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        fullWidth
+        maxWidth="lg"
+        TransitionComponent={Fade}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            overflow: 'hidden'
+          }
+        }}
+      >
+        {/* ================= HEADER ================= */}
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
+            color: '#fff',
+            py: 3
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Box>
+              <Typography variant="h3" color="white">
+                Project Details
+              </Typography>
+              <Typography variant="body2" color="white">
+                Complete project overview, team assignment and workflow
+              </Typography>
+            </Box>
 
-            <IconButton onClick={() => setViewOpen(false)}>
+            <IconButton onClick={() => setViewOpen(false)} sx={{ color: '#fff' }}>
               <CloseIcon />
             </IconButton>
           </Stack>
         </DialogTitle>
 
-        <DialogContent>
+        {/* ================= CONTENT ================= */}
+        <DialogContent dividers sx={{ p: 4 }}>
           {!viewProject ? (
-            <CircularProgress />
+            <Box display="flex" justifyContent="center" py={6}>
+              <CircularProgress />
+            </Box>
           ) : (
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={8}>
-                <Typography variant="h3">{getSafeValue(viewProject.title)}</Typography>
+            <Box>
+              {/* ================= BASIC DETAILS ================= */}
+              <Card sx={{ mb: 4, borderRadius: 4, boxShadow: 2 }}>
+                <CardContent>
+                  <Typography variant="h4" gutterBottom>
+                    Basic Project Details
+                  </Typography>
 
-                <Typography color="text.secondary" mt={2}>
-                  {getSafeValue(viewProject.shortDescription)}
-                </Typography>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <Typography variant="h3" fontWeight={700}>
+                        {getSafeValue(viewProject.title)}
+                      </Typography>
+                    </Grid>
 
-                <Stack direction="row" spacing={2} mt={3}>
-                  <Chip icon={<AssignmentIcon />} label={getSafeValue(viewProject.projectId)} />
-                  <Chip label={getSafeValue(viewProject.priority)} />
-                  <Chip label={getSafeValue(viewProject.status)} />
-                </Stack>
-              </Grid>
+                    <Grid item xs={12}>
+                      <Typography color="text.secondary">{getSafeValue(viewProject.shortDescription)}</Typography>
+                    </Grid>
 
-              <Grid item xs={12} md={4}>
-                <Typography variant="h5">Due Date</Typography>
+                    <Grid item xs={12} md={3}>
+                      <Typography variant="subtitle2">Project ID</Typography>
+                      <Chip icon={<AssignmentIcon />} label={getSafeValue(viewProject.projectId)} />
+                    </Grid>
 
-                <Typography>
-                  <CalendarMonthIcon sx={{ mr: 1 }} />
-                  {formatDate(viewProject.dueDate)}
-                </Typography>
-              </Grid>
-            </Grid>
+                    <Grid item xs={12} md={3}>
+                      <Typography variant="subtitle2">Priority</Typography>
+                      <Chip label={getSafeValue(viewProject.priority)} color="secondary" />
+                    </Grid>
+
+                    <Grid item xs={12} md={3}>
+                      <Typography variant="subtitle2">Status</Typography>
+                      <Chip
+                        label={getSafeValue(viewProject.status)}
+                        color={
+                          viewProject.status === 'Completed'
+                            ? 'info'
+                            : viewProject.status === 'In Progress'
+                              ? 'warning'
+                              : viewProject.status === 'On Hold'
+                                ? 'default'
+                                : 'success'
+                        }
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={3}>
+                      <Typography variant="subtitle2">Due Date</Typography>
+                      <Typography>
+                        <CalendarMonthIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                        {formatDate(viewProject.dueDate)}
+                      </Typography>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Progress
+                      </Typography>
+                      <LinearProgress variant="determinate" value={viewProject.progress || 0} sx={{ height: 10, borderRadius: 5 }} />
+                      <Typography mt={1}>{viewProject.progress || 0}% Completed</Typography>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+
+              {/* ================= TEAM ASSIGNMENT ================= */}
+              <Card sx={{ mb: 4, borderRadius: 4, boxShadow: 2 }}>
+                <CardContent>
+                  <Typography variant="h4" gutterBottom>
+                    Team Assignment
+                  </Typography>
+
+                  <Grid container spacing={4}>
+                    {/* Managers */}
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="h6" gutterBottom>
+                        <GroupsIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                        Project Owners / Managers
+                      </Typography>
+
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        {viewProject.managers?.length ? (
+                          viewProject.managers.map((manager) => (
+                            <Chip key={manager._id} label={manager.name || manager.email} color="primary" variant="outlined" />
+                          ))
+                        ) : (
+                          <Typography color="text.secondary">No managers assigned</Typography>
+                        )}
+                      </Stack>
+                    </Grid>
+
+                    {/* Analysts */}
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="h6" gutterBottom>
+                        <GroupsIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                        Assigned Analysts
+                      </Typography>
+
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        {viewProject.analysts?.length ? (
+                          viewProject.analysts.map((analyst) => (
+                            <Chip key={analyst._id} label={analyst.name || analyst.email} color="secondary" variant="outlined" />
+                          ))
+                        ) : (
+                          <Typography color="text.secondary">No analysts assigned</Typography>
+                        )}
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+
+              {/* ================= SCIENTIFIC WORKFLOW ================= */}
+              <Card sx={{ mb: 4, borderRadius: 4, boxShadow: 2 }}>
+                <CardContent>
+                  <Typography variant="h4" gutterBottom>
+                    Scientific Workflow
+                  </Typography>
+
+                  <Typography variant="h6" gutterBottom>
+                    <ScienceIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    NGS Applications
+                  </Typography>
+
+                  <Stack direction="row" flexWrap="wrap" gap={1}>
+                    {viewProject.ngsApplications?.length ? (
+                      viewProject.ngsApplications.map((app, index) => (
+                        <Chip key={index} label={app.label || app.value || app} color="success" variant="outlined" />
+                      ))
+                    ) : (
+                      <Typography color="text.secondary">No NGS applications selected</Typography>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+
+              {/* ================= FOOTER ACTION ================= */}
+              <Divider sx={{ my: 3 }} />
+
+              <Stack direction="row" justifyContent="flex-end">
+                <Button variant="contained" onClick={() => setViewOpen(false)}>
+                  Close
+                </Button>
+              </Stack>
+            </Box>
           )}
         </DialogContent>
       </Dialog>
