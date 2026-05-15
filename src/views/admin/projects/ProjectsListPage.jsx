@@ -399,6 +399,8 @@ export default function ProjectsListPage() {
     setViewOpen(true);
   };
 
+  // console.log(viewProject);
+
   // ==============================|| EDIT PROJECT ||============================== //
   const handleOpenEdit = (project) => {
     setEditProject(project);
@@ -1016,12 +1018,15 @@ export default function ProjectsListPage() {
                       </Typography>
 
                       <Stack direction="row" flexWrap="wrap" gap={1}>
-                        {viewProject.managers?.length ? (
-                          viewProject.managers.map((manager) => (
-                            <Chip key={manager._id} label={manager.name || manager.email} color="primary" variant="outlined" />
-                          ))
+                        {viewProject.manager ? (
+                          <Chip
+                            key={viewProject.manager._id}
+                            label={viewProject.manager.name || viewProject.manager.email}
+                            color="primary"
+                            variant="outlined"
+                          />
                         ) : (
-                          <Typography color="text.secondary">No managers assigned</Typography>
+                          <Typography color="text.secondary">No manager assigned</Typography>
                         )}
                       </Stack>
                     </Grid>

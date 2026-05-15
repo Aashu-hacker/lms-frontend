@@ -233,7 +233,7 @@ export default function ViewProjectVersions() {
       case 'draft':
         return 'warning';
       case 'archived':
-        return 'default';
+        return 'secondary';
       default:
         return 'primary';
     }
@@ -275,9 +275,13 @@ export default function ViewProjectVersions() {
 
                 <Chip label={`Latest v${latestVersion?.version || 1}`} sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: '#fff' }} />
 
-                <Chip label={latestVersion?.status || 'draft'} color={getStatusColor(latestVersion?.status)} sx={{ color: '#fff' }} />
-
-                {latestVersion?.isNotify && <Chip icon={<Notifications />} label="Admin Notified" color="success" />}
+                <Chip
+                  label={latestVersion?.status ? latestVersion.status.charAt(0).toUpperCase() + latestVersion.status.slice(1) : 'Draft'}
+                  color={getStatusColor(latestVersion?.status)}
+                />
+                {latestVersion?.isNotify && (
+                  <Chip icon={<Notifications />} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} label="Admin Notified" color="success" />
+                )}
               </Stack>
             </Grid>
 
@@ -297,11 +301,24 @@ export default function ViewProjectVersions() {
                   Edit Version
                 </Button>
 
-                <Button fullWidth variant="contained" sx={{ color: '#fff' }} color="success" startIcon={<Notifications />}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  sx={{ color: '#fff' }}
+                  color="success"
+                  startIcon={<Notifications />}
+                  onClick={() => handleNotifyVersion(latestVersion._id, latestVersion.version)}
+                >
                   Notify Admin
                 </Button>
 
-                <Button fullWidth variant="outlined" sx={{ color: '#fff', borderColor: '#fff' }} startIcon={<Archive />}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  sx={{ color: '#fff', borderColor: '#fff' }}
+                  startIcon={<Archive />}
+                  onClick={() => handleArchiveVersion(latestVersion._id, latestVersion.version)}
+                >
                   Archive
                 </Button>
               </Stack>
@@ -335,7 +352,7 @@ export default function ViewProjectVersions() {
                     <Grid item xs={12} md={2}>
                       <Typography variant="h4">v{version.version}</Typography>
 
-                      <Chip label={version.status} color={getStatusColor(version.status)} size="small" sx={{ mt: 1 }} />
+                      <Chip label={version?.status ? version.status.charAt(0).toUpperCase() + version.status.slice(1) : 'Draft'} color={getStatusColor(version.status)} size="small" sx={{ mt: 1 }} />
                     </Grid>
 
                     {/* CREATED */}
