@@ -35,6 +35,15 @@ import { ArrowBack, CalendarMonth, Person, Layers, Notifications, Archive, Edit,
 export default function ViewProjectVersions() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const getUser = () => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  };
+
+  const user = getUser();
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState(null);
@@ -301,16 +310,18 @@ export default function ViewProjectVersions() {
                   Edit Version
                 </Button>
 
-                <Button
-                  fullWidth
-                  variant="contained"
-                  sx={{ color: '#fff' }}
-                  color="success"
-                  startIcon={<Notifications />}
-                  onClick={() => handleNotifyVersion(latestVersion._id, latestVersion.version)}
-                >
-                  Notify Admin
-                </Button>
+                {user?.role !== 'admin' && (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    sx={{ color: '#fff' }}
+                    color="success"
+                    startIcon={<Notifications />}
+                    onClick={() => handleNotifyVersion(latestVersion._id, latestVersion.version)}
+                  >
+                    Notify Admin
+                  </Button>
+                )}
 
                 <Button
                   fullWidth
@@ -352,7 +363,12 @@ export default function ViewProjectVersions() {
                     <Grid item xs={12} md={2}>
                       <Typography variant="h4">v{version.version}</Typography>
 
-                      <Chip label={version?.status ? version.status.charAt(0).toUpperCase() + version.status.slice(1) : 'Draft'} color={getStatusColor(version.status)} size="small" sx={{ mt: 1 }} />
+                      <Chip
+                        label={version?.status ? version.status.charAt(0).toUpperCase() + version.status.slice(1) : 'Draft'}
+                        color={getStatusColor(version.status)}
+                        size="small"
+                        sx={{ mt: 1 }}
+                      />
                     </Grid>
 
                     {/* CREATED */}
@@ -390,7 +406,7 @@ export default function ViewProjectVersions() {
                     <Grid item xs={12} md={4}>
                       <Stack direction="row" spacing={1} flexWrap="wrap">
                         {/* Notify only for Draft */}
-                        {version.status === 'draft' && !version.isNotify && (
+                        {version.status === 'draft' && !version.isNotify && user?.role !== 'admin' && (
                           <Button
                             size="small"
                             color="success"
@@ -401,7 +417,6 @@ export default function ViewProjectVersions() {
                             Notify
                           </Button>
                         )}
-
                         {/* Archive */}
                         {version.status !== 'archived' && (
                           <Button
