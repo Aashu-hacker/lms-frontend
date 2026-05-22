@@ -9,7 +9,7 @@ import {
   IconSend,
   IconEye,
   IconCheck,
-  IconGitBranch
+  IconGitBranch,
 } from '@tabler/icons-react';
 
 // constant
@@ -23,7 +23,7 @@ const icons = {
   IconSend,
   IconEye,
   IconCheck,
-  IconGitBranch
+  IconGitBranch,
 };
 
 // ✅ Get logged-in user safely
@@ -73,6 +73,13 @@ const pages = {
           type: 'item',
           url: '/admin/projects',
           icon: icons.IconGitBranch
+        },
+        {
+          id: 'reports',
+          title: 'Reports',
+          type: 'item',
+          url: '/admin/reports',
+          icon: icons.IconReport
         },
       ]
     },
