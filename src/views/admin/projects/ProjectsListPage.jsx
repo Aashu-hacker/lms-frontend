@@ -877,7 +877,7 @@ export default function ProjectsListPage() {
       />
 
       {/* TABLE */}
-      <Box sx={{ height: 650 }}>
+      <Box>
         <DataGrid
           rows={filteredProjects}
           columns={columns}

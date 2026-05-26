@@ -306,7 +306,7 @@ export default function ViewProjectVersions() {
                   Create New Draft Version
                 </Button>
 
-                <Button fullWidth variant="contained" sx={{ color: '#fff' }} color="secondary" startIcon={<Edit />}>
+                <Button fullWidth variant="contained" sx={{ color: '#fff' }} color="secondary" startIcon={<Edit />}  onClick={() => navigate(`/admin/projects/${id}/versions/${latestVersion._id}`)}>
                   Edit Version
                 </Button>
 

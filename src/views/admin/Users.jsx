@@ -364,7 +364,7 @@ export default function Users() {
         </Button>
       }
     >
-      <Box sx={{ height: 550, width: '100%' }}>
+      <Box sx={{  width: '100%' }}>
         <DataGrid
           rows={users}
           columns={columns}

@@ -193,33 +193,33 @@ export default function ReportsDashboard() {
         </Stack>
       )
     },
-    {
-      field: 'versionId',
-      headerName: 'Version Tag',
-      flex: 0.6,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => (
-        <Chip label={params.value} size="small" sx={{ bgcolor: '#e2e8f0', color: '#334155', fontWeight: 'bold', borderRadius: '4px' }} />
-      )
-    },
-    {
-      field: 'analystName',
-      headerName: 'Lead Analyst Author',
-      flex: 1.2,
-      valueGetter: (params, row) => row.header?.analystName || 'System Diagnostics'
-    },
-    {
-      field: 'status',
-      headerName: 'Status Flag',
-      flex: 0.8,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => {
-        const isFinal = params.value === 'Final';
-        return <Chip label={params.value} size="small" color={isFinal ? 'success' : 'warning'} sx={{ fontWeight: '600', minWidth: 70 }} />;
-      }
-    },
+    // {
+    //   field: 'versionId',
+    //   headerName: 'Version Tag',
+    //   flex: 0.6,
+    //   align: 'center',
+    //   headerAlign: 'center',
+    //   renderCell: (params) => (
+    //     <Chip label={params.value} size="small" sx={{ bgcolor: '#e2e8f0', color: '#334155', fontWeight: 'bold', borderRadius: '4px' }} />
+    //   )
+    // },
+    // {
+    //   field: 'analystName',
+    //   headerName: 'Lead Analyst Author',
+    //   flex: 1.2,
+    //   valueGetter: (params, row) => row.header?.analystName || 'System Diagnostics'
+    // },
+    // {
+    //   field: 'status',
+    //   headerName: 'Status Flag',
+    //   flex: 0.8,
+    //   align: 'center',
+    //   headerAlign: 'center',
+    //   renderCell: (params) => {
+    //     const isFinal = params.value === 'Final';
+    //     return <Chip label={params.value} size="small" color={isFinal ? 'success' : 'warning'} sx={{ fontWeight: '600', minWidth: 70 }} />;
+    //   }
+    // },
     {
       field: 'updatedAt',
       headerName: 'Last Modified Timestamp',
@@ -348,7 +348,7 @@ export default function ReportsDashboard() {
         {/* --- MUI Datagrid Structural Instantiation Matrix Layer --- */}
         <Box
           sx={{
-            height: 580,
+            
             width: '100%',
             '& .MuiDataGrid-root': { border: `1px solid ${theme.palette.divider}`, borderRadius: '8px' },
             '& .MuiDataGrid-columnHeaders': { bgcolor: '#f8fafc', borderBottom: `2px solid ${theme.palette.divider}` },

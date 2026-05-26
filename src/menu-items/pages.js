@@ -117,46 +117,46 @@ const pages = {
           url: '/analyst/projects',
           icon: icons.IconGitBranch
         },
-        {
-          id: 'create-report',
-          title: 'Create Reports',
-          type: 'item',
-          // url: '/analyst/create-report',
-          url: '#',
-          icon: icons.IconFileText
-        },
-        {
-          id: 'edit-report',
-          title: 'Edit Reports',
-          type: 'item',
-          // url: '/analyst/edit-report',
-          url: '#',
-          icon: icons.IconClipboardCheck
-        },
-        {
-          id: 'submit-report',
-          title: 'Submit to Manager',
-          type: 'item',
-          // url: '/analyst/submit-report',
-          url: '#',
-          icon: icons.IconSend
-        },
-        {
-          id: 'manager-comments',
-          title: 'Manager Comments',
-          type: 'item',
-          // url: '/analyst/comments',
-          url: '#',
-          icon: icons.IconMessageCircle
-        },
-        {
-          id: 'internal-version',
-          title: 'Internal Versions',
-          type: 'item',
-          // url: '/analyst/internal-versions',
-          url: '#',
-          icon: icons.IconGitBranch
-        }
+        // {
+        //   id: 'create-report',
+        //   title: 'Create Reports',
+        //   type: 'item',
+        //   // url: '/analyst/create-report',
+        //   url: '#',
+        //   icon: icons.IconFileText
+        // },
+        // {
+        //   id: 'edit-report',
+        //   title: 'Edit Reports',
+        //   type: 'item',
+        //   // url: '/analyst/edit-report',
+        //   url: '#',
+        //   icon: icons.IconClipboardCheck
+        // },
+        // {
+        //   id: 'submit-report',
+        //   title: 'Submit to Manager',
+        //   type: 'item',
+        //   // url: '/analyst/submit-report',
+        //   url: '#',
+        //   icon: icons.IconSend
+        // },
+        // {
+        //   id: 'manager-comments',
+        //   title: 'Manager Comments',
+        //   type: 'item',
+        //   // url: '/analyst/comments',
+        //   url: '#',
+        //   icon: icons.IconMessageCircle
+        // },
+        // {
+        //   id: 'internal-version',
+        //   title: 'Internal Versions',
+        //   type: 'item',
+        //   // url: '/analyst/internal-versions',
+        //   url: '#',
+        //   icon: icons.IconGitBranch
+        // }
       ]
     },
 
