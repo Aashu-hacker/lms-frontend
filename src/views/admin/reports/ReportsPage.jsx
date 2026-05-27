@@ -153,7 +153,9 @@ export default function ReportsDashboard() {
       if (result.isConfirmed) {
         try {
           setLoading(true);
-          await axios.delete(`${REACT_APP_BASE_URL}/projects/${row.projectId}/versions/${row.versionId}`);
+          await axios.delete(`${REACT_APP_BASE_URL}/reports/${row.projectId}/versions/${row.versionId}`,{
+            headers: authHeaders,
+          });
 
           Swal.fire({
             title: 'Version Dropped!',

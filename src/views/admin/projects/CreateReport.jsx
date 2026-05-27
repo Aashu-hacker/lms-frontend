@@ -244,19 +244,26 @@ export default function ReportWorkspaceStudio() {
   };
 
   // ================= 2. LOCAL HARDWARE IMAGE FILE CONTROLLERS =================
-  const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
-    const file = e.target.files[0];
-    if (!file) return;
+const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    // Translate native blob target pointers into local image preview URI strings
-    const temporaryLocalPreviewUrl = URL.createObjectURL(file);
-    
+  // Create a reader to transform the hardware file asset into a Base64 string
+  const reader = new FileReader();
+  
+  reader.onloadend = () => {
+    const base64DataUri = reader.result; // This string holds the actual image data bytes
+
     const updated = [...sections];
     updated[sIdx].elements = updated[sIdx].elements.map(item => 
-      item.id === elId ? { ...item, imageUrl: temporaryLocalPreviewUrl } : item
+      item.id === elId ? { ...item, imageUrl: base64DataUri } : item
     );
     setSections(updated);
   };
+
+  // Trigger the asynchronous text stream translation layer
+  reader.readAsDataURL(file);
+};
 
   // ================= 3. ADVANCED MATRIX TABLE CONTROLLER ENGINE FUNCTIONS =================
   const handleInsertTableRow = (sIdx, elId) => {
