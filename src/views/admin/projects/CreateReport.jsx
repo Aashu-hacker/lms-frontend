@@ -203,31 +203,61 @@ export default function ReportWorkspaceStudio() {
   // --- Component Management Functions (Advanced Canvas Elements) ---
   const handleAddComponent = (type, forcedSectionIndex = null) => {
     const targetIndex = forcedSectionIndex !== null ? forcedSectionIndex : selectedSectionIndex !== null ? selectedSectionIndex : 0;
+
     if (sections.length === 0 || targetIndex >= sections.length) {
-      alert('Please add or select a section card framework layout first.');
+      alert('Please add or select a section first.');
       return;
     }
+
+    const updated = [...sections];
+    const section = updated[targetIndex];
+
+    const padding = 10;
+    const gap = 20;
+
+    // Find last component position
+    const lastElement = section.elements.length
+      ? section.elements.reduce((prev, curr) => {
+          const prevBottom = prev.y + prev.h;
+          const currBottom = curr.y + curr.h;
+          return currBottom > prevBottom ? curr : prev;
+        })
+      : null;
+
+    // Place new component below last component
+    const nextY = lastElement ? lastElement.y + lastElement.h + gap : padding;
+
+    const componentWidth = (section.width || 760) - padding * 2;
 
     const baseElement = {
       id: 'el_' + Date.now(),
       type,
-      x: 30,
-      y: 150,
-      w: 700,
+
+      x: padding,
+      y: nextY,
+
+      w: componentWidth,
       h: 240,
-      zIndex: sections[targetIndex].elements.length + 1,
+
+      zIndex: section.elements.length + 1,
+
       textContent: type === 'text' ? 'Enter your custom rich narrative analysis data here...' : '',
+
       imageUrl: type === 'image' ? 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&auto=format&fit=crop' : '',
+
       imageLegend: '',
       imageDescription: '',
       imageAlignment: 'Center',
+
       tableRowsCount: 3,
       tableColsCount: 3,
+
       tableData: [
         ['Header A', 'Header B', 'Header C'],
         ['Data 1', 'Data 2', 'Data 3'],
         ['Data 4', 'Data 5', 'Data 6']
       ],
+
       tableLegend: '',
       tableDescription: '',
       isBold: false,
@@ -235,40 +265,49 @@ export default function ReportWorkspaceStudio() {
       isBullet: false
     };
 
-    const updated = [...sections];
-    updated[targetIndex].elements.push(baseElement);
+    section.elements.push(baseElement);
+
+    // AUTO CALCULATE SECTION HEIGHT
+    const maxBottom = Math.max(...section.elements.map((el) => el.y + el.h));
+
+    section.height = maxBottom + padding;
+
+    // AUTO CALCULATE SECTION WIDTH
+    const maxWidth = Math.max(...section.elements.map((el) => el.x + el.w));
+
+    section.width = maxWidth + padding;
+
     setSections(updated);
+
     setSelectedElementId(baseElement.id);
     setSelectedSectionIndex(targetIndex);
     setActiveTab('component');
   };
 
   // ================= 2. LOCAL HARDWARE IMAGE FILE CONTROLLERS =================
-const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // Create a reader to transform the hardware file asset into a Base64 string
-  const reader = new FileReader();
-  
-  reader.onloadend = () => {
-    const base64DataUri = reader.result; // This string holds the actual image data bytes
+    // Create a reader to transform the hardware file asset into a Base64 string
+    const reader = new FileReader();
 
-    const updated = [...sections];
-    updated[sIdx].elements = updated[sIdx].elements.map(item => 
-      item.id === elId ? { ...item, imageUrl: base64DataUri } : item
-    );
-    setSections(updated);
+    reader.onloadend = () => {
+      const base64DataUri = reader.result; // This string holds the actual image data bytes
+
+      const updated = [...sections];
+      updated[sIdx].elements = updated[sIdx].elements.map((item) => (item.id === elId ? { ...item, imageUrl: base64DataUri } : item));
+      setSections(updated);
+    };
+
+    // Trigger the asynchronous text stream translation layer
+    reader.readAsDataURL(file);
   };
-
-  // Trigger the asynchronous text stream translation layer
-  reader.readAsDataURL(file);
-};
 
   // ================= 3. ADVANCED MATRIX TABLE CONTROLLER ENGINE FUNCTIONS =================
   const handleInsertTableRow = (sIdx, elId) => {
     const updated = [...sections];
-    updated[sIdx].elements = updated[sIdx].elements.map(item => {
+    updated[sIdx].elements = updated[sIdx].elements.map((item) => {
       if (item.id === elId) {
         const currentColsCount = item.tableData[0] ? item.tableData[0].length : 3;
         const freshRowPlaceholder = Array(currentColsCount).fill('New cell content');
@@ -281,10 +320,10 @@ const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
 
   const handleInsertTableColumn = (sIdx, elId) => {
     const updated = [...sections];
-    updated[sIdx].elements = updated[sIdx].elements.map(item => {
+    updated[sIdx].elements = updated[sIdx].elements.map((item) => {
       if (item.id === elId) {
         const expandedGrid = item.tableData.map((row, index) => [
-          ...row, 
+          ...row,
           index === 0 ? `Header ${String.fromCharCode(65 + row.length)}` : 'New cell data'
         ]);
         return { ...item, tableData: expandedGrid };
@@ -296,7 +335,7 @@ const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
 
   const handleDeleteTableRow = (sIdx, elId) => {
     const updated = [...sections];
-    updated[sIdx].elements = updated[sIdx].elements.map(item => {
+    updated[sIdx].elements = updated[sIdx].elements.map((item) => {
       if (item.id === elId) {
         if (item.tableData.length <= 1) {
           alert('Cannot delete the final remaining record row matrix layer.');
@@ -313,13 +352,13 @@ const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
 
   const handleDeleteTableColumn = (sIdx, elId) => {
     const updated = [...sections];
-    updated[sIdx].elements = updated[sIdx].elements.map(item => {
+    updated[sIdx].elements = updated[sIdx].elements.map((item) => {
       if (item.id === elId) {
         if (item.tableData[0] && item.tableData[0].length <= 1) {
           alert('Cannot delete the final remaining column dimension field.');
           return item;
         }
-        const truncatedCols = item.tableData.map(row => {
+        const truncatedCols = item.tableData.map((row) => {
           const r = [...row];
           r.pop(); // Drop outer array values
           return r;
@@ -514,8 +553,10 @@ const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
                 setSelectedSectionIndex(sIndex);
               }}
               sx={{
-                width: 816,
-                minHeight: 620,
+                width: 'fit-content',
+                minWidth: '816px',
+                height: 'fit-content',
+                minHeight: '500px',
                 bgcolor: '#ffffff',
                 overflow: 'visible',
                 position: 'relative',
@@ -830,12 +871,25 @@ const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
                                 >
                                   Change Source URL
                                 </Button>
-                                 {/* TRIGGER COMPUTATIONAL HARDWARE INPUT DIALOGUE BOX */}
-                                <Button size="small" variant="outlined" color="primary" startIcon={<CloudUpload style={{ fontSize: 12 }} />} onClick={() => fileInputRef.current.click()} sx={{ fontSize: 10, py: 0, px: 1, textTransform: 'none', height: 20 }}>
+                                {/* TRIGGER COMPUTATIONAL HARDWARE INPUT DIALOGUE BOX */}
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="primary"
+                                  startIcon={<CloudUpload style={{ fontSize: 12 }} />}
+                                  onClick={() => fileInputRef.current.click()}
+                                  sx={{ fontSize: 10, py: 0, px: 1, textTransform: 'none', height: 20 }}
+                                >
                                   Upload from Computer
                                 </Button>
                                 {/* Hidden Pipeline Frame stream input */}
-                                <input type="file" ref={fileInputRef} accept="image/*" style={{ display: 'none' }} onChange={(e) => handleLocalImageFileUploadStream(e, sIndex, el.id)} />
+                                <input
+                                  type="file"
+                                  ref={fileInputRef}
+                                  accept="image/*"
+                                  style={{ display: 'none' }}
+                                  onChange={(e) => handleLocalImageFileUploadStream(e, sIndex, el.id)}
+                                />
                               </Box>
                             )}
 
@@ -889,12 +943,54 @@ const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
                         {el.type === 'table' && (
                           <Box display="flex" flexDirection="column" sx={{ width: '100%', height: '100%' }}>
                             {selectedElementId === el.id && (
-                              <Box display="flex" gap={0.5} p={0.2} sx={{ bgcolor: '#f8fafc', borderBottom: '1px solid #e2e8f0', mb: 0.5, borderRadius: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                <Button size="small" variant="text" onClick={() => handleInsertTableRow(sIndex, el.id)} sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto', fontWeight: 'bold' }}>+ Add Row</Button>
-                                <Button size="small" variant="text" onClick={() => handleInsertTableColumn(sIndex, el.id)} sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto', fontWeight: 'bold' }}>+ Add Col</Button>
+                              <Box
+                                display="flex"
+                                gap={0.5}
+                                p={0.2}
+                                sx={{
+                                  bgcolor: '#f8fafc',
+                                  borderBottom: '1px solid #e2e8f0',
+                                  mb: 0.5,
+                                  borderRadius: '4px',
+                                  alignItems: 'center',
+                                  flexWrap: 'wrap'
+                                }}
+                              >
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={() => handleInsertTableRow(sIndex, el.id)}
+                                  sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto', fontWeight: 'bold' }}
+                                >
+                                  + Add Row
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={() => handleInsertTableColumn(sIndex, el.id)}
+                                  sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto', fontWeight: 'bold' }}
+                                >
+                                  + Add Col
+                                </Button>
                                 <Divider orientation="vertical" flexItem sx={{ mx: 0.2 }} />
-                                <Button size="small" variant="text" color="error" onClick={() => handleDeleteTableRow(sIndex, el.id)} sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto' }}>- Remove Row</Button>
-                                <Button size="small" variant="text" color="error" onClick={() => handleDeleteTableColumn(sIndex, el.id)} sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto' }}>- Remove Col</Button>
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  color="error"
+                                  onClick={() => handleDeleteTableRow(sIndex, el.id)}
+                                  sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto' }}
+                                >
+                                  - Remove Row
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  color="error"
+                                  onClick={() => handleDeleteTableColumn(sIndex, el.id)}
+                                  sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto' }}
+                                >
+                                  - Remove Col
+                                </Button>
                               </Box>
                             )}
 
@@ -904,16 +1000,24 @@ const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
                                   {el.tableData.map((row, ri) => (
                                     <tr key={ri} style={{ background: ri === 0 ? '#f1f5f9' : 'transparent' }}>
                                       {row.map((cell, ci) => (
-                                        <td key={ci} style={{ border: '1px solid #cbd5e1', padding: '2px', textAlign: 'center', background: ri === 0 ? '#f1f5f9' : '#ffffff' }}>
+                                        <td
+                                          key={ci}
+                                          style={{
+                                            border: '1px solid #cbd5e1',
+                                            padding: '2px',
+                                            textAlign: 'center',
+                                            background: ri === 0 ? '#f1f5f9' : '#ffffff'
+                                          }}
+                                        >
                                           <input
                                             type="text"
                                             value={cell}
                                             disabled={selectedElementId !== el.id}
                                             onChange={(e) => {
                                               const updated = [...sections];
-                                              updated[sIndex].elements = updated[sIndex].elements.map(item => {
+                                              updated[sIndex].elements = updated[sIndex].elements.map((item) => {
                                                 if (item.id === el.id) {
-                                                  const gridCopy = item.tableData.map(r => [...r]);
+                                                  const gridCopy = item.tableData.map((r) => [...r]);
                                                   gridCopy[ri][ci] = e.target.value;
                                                   return { ...item, tableData: gridCopy };
                                                 }
@@ -921,7 +1025,16 @@ const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
                                               });
                                               setSections(updated);
                                             }}
-                                            style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'center', fontSize: '11px', fontWeight: ri === 0 ? 'bold' : 'normal', color: '#334155', outline: 'none' }}
+                                            style={{
+                                              width: '100%',
+                                              border: 'none',
+                                              background: 'transparent',
+                                              textAlign: 'center',
+                                              fontSize: '11px',
+                                              fontWeight: ri === 0 ? 'bold' : 'normal',
+                                              color: '#334155',
+                                              outline: 'none'
+                                            }}
                                           />
                                         </td>
                                       ))}
@@ -929,7 +1042,21 @@ const handleLocalImageFileUploadStream = (e, sIdx, elId) => {
                                   ))}
                                 </tbody>
                               </table>
-                              <TextField fullWidth variant="standard" placeholder="Add table index notations summary description data..." value={el.tableLegend || ''} onChange={(e) => { const updated = [...sections]; updated[sIndex].elements = updated[sIndex].elements.map(item => item.id === el.id ? { ...item, tableLegend: e.target.value } : item); setSections(updated); }} InputProps={{ disableUnderline: selectedElementId !== el.id }} inputProps={{ style: { fontSize: 11, fontStyle: 'italic', color: '#64748b', marginTop: '4px' } }} />
+                              <TextField
+                                fullWidth
+                                variant="standard"
+                                placeholder="Add table index notations summary description data..."
+                                value={el.tableLegend || ''}
+                                onChange={(e) => {
+                                  const updated = [...sections];
+                                  updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                    item.id === el.id ? { ...item, tableLegend: e.target.value } : item
+                                  );
+                                  setSections(updated);
+                                }}
+                                InputProps={{ disableUnderline: selectedElementId !== el.id }}
+                                inputProps={{ style: { fontSize: 11, fontStyle: 'italic', color: '#64748b', marginTop: '4px' } }}
+                              />
                             </Box>
                           </Box>
                         )}
