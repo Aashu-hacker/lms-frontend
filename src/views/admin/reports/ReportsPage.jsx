@@ -53,81 +53,95 @@ export default function ReportsDashboard() {
     'Content-Type': 'application/json'
   };
 
-  // --- Fetch API Execution ---
+  const getUser = () => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  };
+
+  const user = getUser();
+
   // --- Fetch API Execution ---
   const fetchReportsData = async () => {
     setLoading(true);
+
     try {
-      // Build dynamic query parameters to send to the backend
       const queryParams = {};
 
-      if (statusFilter && statusFilter !== 'All') {
-        queryParams.status = statusFilter;
-      }
-
       if (searchQuery) {
-        // Passes the search query to check against the lead analyst or global text match
         queryParams.analyst = searchQuery;
       }
 
-      const response = await axios.get(`${REACT_APP_BASE_URL}/reports`, {
+      // Fetch Reports
+      const reportsResponse = await axios.get(`${REACT_APP_BASE_URL}/reports`, {
         headers: authHeaders,
-        params: queryParams // Axios automatically appends these as ?status=...&analyst=...
+        params: queryParams
       });
 
-      if (response.data) {
-        // DataGrid strictly requires a unique 'id' attribute on every record
-        const formattedData = response.data.map((item, idx) => ({
-          ...item,
-          id: item._id || `${item.projectId}_${item.versionId}_${idx}`
-        }));
-        setReports(formattedData);
-      }
-    } catch (err) {
-      console.error('Dashboard engine failed data synchronization:', err);
+      const reports = reportsResponse.data || [];
 
-      // Fallback High-Fidelity Mock Data if server is uncontactable
-      const mockData = [
-        {
-          id: 'mock_1',
-          projectId: 'proj_99',
-          versionId: 'v1.0',
-          reportName: 'Transcriptome Secondary Analysis Map',
-          status: 'Draft',
-          updatedAt: '2026-05-22T12:00:00.000Z',
-          header: { analystName: 'Dr. Amit Sharma' }
-        },
-        {
-          id: 'mock_2',
-          projectId: 'proj_99',
-          versionId: 'v1.1',
-          reportName: 'Differential Gene Expression Visualization',
-          status: 'Final',
-          updatedAt: '2026-05-20T15:30:00.000Z',
-          header: { analystName: 'Dr. Amit Sharma' }
-        },
-        {
-          id: 'mock_3',
-          projectId: 'proj_104',
-          versionId: 'v1.0',
-          reportName: 'Pathway Enrichment Statistics Dashboard',
-          status: 'Draft',
-          updatedAt: '2026-05-19T09:15:00.000Z',
-          header: { analystName: 'Sarah Jenkins' }
+      // Extract unique project ids
+      // Extract unique project ids
+      const projectIds = [...new Set(reports.map((r) => r.projectId?._id || r.projectId).filter(Boolean))];
+
+      // Fetch all projects in parallel
+      const projectResponses = await Promise.all(
+        projectIds.map(async (projectId) => {
+          try {
+            const res = await axios.get(`${REACT_APP_BASE_URL}/projects/${projectId}`, {
+              headers: authHeaders
+            });
+
+            return res.data;
+          } catch (err) {
+            console.error(`Failed project ${projectId}`, err);
+            return null;
+          }
+        })
+      );
+
+      // Remove failed requests
+      const projects = projectResponses.filter(Boolean);
+
+      // Create map
+      const projectMap = {};
+
+      projects.forEach((project) => {
+        projectMap[project._id] = project;
+      });
+
+      const loggedUserId = user?._id;
+      const loggedUserRole = user?.role?.toLowerCase();
+
+      const filteredReports = reports.filter((report) => {
+        // Admin -> all reports
+        if (loggedUserRole === 'admin') {
+          return true;
         }
-      ];
 
-      // Apply local client-side filter matching for offline fallback consistency
-      const filteredMock = mockData.filter((row) => {
-        const matchesStatus = statusFilter === 'All' || row.status === statusFilter;
-        const matchesSearch =
-          !searchQuery ||
-          row.reportName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (row.header?.analystName || '').toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesStatus && matchesSearch;
+        const project = projectMap[report.projectId?._id || report.projectId];
+
+        if (!project) return false;
+
+        const isPublished = report.status?.toLowerCase() === 'published';
+
+        const managerId = project.manager?._id || project.manager;
+
+        const analystIds = (project.analysts || []).map((a) => a?._id || a);
+        const isAssigned = managerId === loggedUserId || analystIds.includes(loggedUserId);
+        return isPublished && isAssigned;
       });
 
-      setReports(filteredMock);
+      const formattedData = filteredReports.map((item, idx) => ({
+        ...item,
+        id: item._id || `${item.projectId}_${idx}`
+      }));
+
+      setReports(formattedData);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -153,8 +167,8 @@ export default function ReportsDashboard() {
       if (result.isConfirmed) {
         try {
           setLoading(true);
-          await axios.delete(`${REACT_APP_BASE_URL}/reports/${row.projectId}/versions/${row.versionId}`,{
-            headers: authHeaders,
+          await axios.delete(`${REACT_APP_BASE_URL}/reports/${row.projectId}/versions/${row.versionId}`, {
+            headers: authHeaders
           });
 
           Swal.fire({
@@ -181,7 +195,7 @@ export default function ReportsDashboard() {
   const columns = [
     {
       field: 'reportName',
-      headerName: 'Report Structural Identity Name',
+      headerName: 'Report Name',
       flex: 1.8,
       minWidth: 250,
       renderCell: (params) => (
@@ -224,7 +238,7 @@ export default function ReportsDashboard() {
     // },
     {
       field: 'updatedAt',
-      headerName: 'Last Modified Timestamp',
+      headerName: 'Last Modified',
       flex: 1.2,
       valueGetter: (params) =>
         params
@@ -239,7 +253,7 @@ export default function ReportsDashboard() {
     },
     {
       field: 'actions',
-      headerName: 'Studio Actions Workspace',
+      headerName: 'Actions',
       flex: 1,
       sortable: false,
       align: 'center',
@@ -250,7 +264,7 @@ export default function ReportsDashboard() {
             <IconButton
               size="small"
               color="primary"
-              onClick={() => navigate(`/projects/${params.row.projectId}/versions/${params.row.versionId}`)}
+              onClick={() => navigate(`/admin/projects/${params.row.projectId}/versions/${params.row.versionId}`)}
             >
               <Edit fontSize="small" />
             </IconButton>
@@ -259,9 +273,7 @@ export default function ReportsDashboard() {
             <IconButton
               size="small"
               color="success"
-              onClick={() =>
-                window.open(`${REACT_APP_BASE_URL}/projects/${params.row.projectId}/versions/${params.row.versionId}/preview`, '_blank')
-              }
+              onClick={() => window.open(`${REACT_APP_BASE_URL}/reports/${params.row.versionId}/preview`, '_blank')}
             >
               <Visibility fontSize="small" />
             </IconButton>
@@ -350,7 +362,6 @@ export default function ReportsDashboard() {
         {/* --- MUI Datagrid Structural Instantiation Matrix Layer --- */}
         <Box
           sx={{
-            
             width: '100%',
             '& .MuiDataGrid-root': { border: `1px solid ${theme.palette.divider}`, borderRadius: '8px' },
             '& .MuiDataGrid-columnHeaders': { bgcolor: '#f8fafc', borderBottom: `2px solid ${theme.palette.divider}` },

@@ -101,6 +101,16 @@ export default function ReportWorkspaceStudio() {
     'Content-Type': 'application/json'
   };
 
+    const getUser = () => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  };
+
+  const user = getUser();
+
   // --- Initial Data Load ---
   useEffect(() => {
     axios
@@ -458,7 +468,9 @@ export default function ReportWorkspaceStudio() {
 
       const response = await axios.put(
         `${REACT_APP_BASE_URL}/reports/${id}/versions/${versionId}/publish`,
-        {},
+        {
+          user: user
+        },
         {
           headers: authHeaders
         }

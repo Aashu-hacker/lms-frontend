@@ -179,8 +179,7 @@ const pages = {
           id: 'submitted-reports',
           title: 'Submitted Reports',
           type: 'item',
-          // url: '/manager/submitted-reports',
-          url: '#',
+          url: '/manager/submitted-reports',
           icon: icons.IconEye
         },
         {
