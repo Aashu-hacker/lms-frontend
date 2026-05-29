@@ -432,6 +432,58 @@ export default function ReportWorkspaceStudio() {
     window.open(`${REACT_APP_BASE_URL}/reports/${versionId}/preview`, '_blank');
   };
 
+  const handlePublishReport = async () => {
+    const result = await Swal.fire({
+      title: 'Publish Report?',
+      text: 'Once published, this version will become available to managers and analysts.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#16a34a',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, Publish',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+    try {
+      Swal.fire({
+        title: 'Publishing...',
+        text: 'Please wait while report is being published',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      const response = await axios.put(
+        `${REACT_APP_BASE_URL}/reports/${id}/versions/${versionId}/publish`,
+        {},
+        {
+          headers: authHeaders
+        }
+      );
+      Swal.close();
+      if (response.data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Published Successfully',
+          text: 'Report version published successfully',
+          confirmButtonColor: '#16a34a'
+        });
+        navigate(-1);
+      }
+    } catch (err) {
+      Swal.close();
+      Swal.fire({
+        icon: 'error',
+        title: 'Publish Failed',
+        text: err?.response?.data?.message || 'Failed to publish report',
+        confirmButtonColor: '#d33'
+      });
+    }
+  };
+
   // Get active configurations references
   const currentElement =
     selectedSectionIndex !== null && selectedElementId !== null
@@ -475,7 +527,13 @@ export default function ReportWorkspaceStudio() {
             <Button size="small" variant="outlined" startIcon={<Visibility />} onClick={handleTriggerPreviewWindow}>
               Preview
             </Button>
-            <Button size="small" variant="contained" color="success" startIcon={<Publish />}>
+            <Button
+              size="small"
+              variant="contained"
+              color="success"
+              startIcon={<Publish />}
+              onClick={handlePublishReport}
+            >
               Publish
             </Button>
             <Button size="small" variant="text" color="error" startIcon={<ExitToApp />} onClick={() => navigate(-1)}>
@@ -496,7 +554,7 @@ export default function ReportWorkspaceStudio() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 4,
+            gap: 2,
             bgcolor: '#eaecee'
           }}
         >
@@ -556,7 +614,7 @@ export default function ReportWorkspaceStudio() {
                 width: 'fit-content',
                 minWidth: '816px',
                 height: 'fit-content',
-                minHeight: '500px',
+                minHeight: '1500px',
                 bgcolor: '#ffffff',
                 overflow: 'visible',
                 position: 'relative',
