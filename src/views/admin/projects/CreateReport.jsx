@@ -47,10 +47,16 @@ import {
   FormatListBulleted,
   FormatAlignLeft,
   FormatAlignCenter,
+<<<<<<< HEAD
+  AddCircleOutline,
+  ImageOutlined,
+  GridOnOutlined
+=======
   FormatUnderlined,
   FormatAlignRight,
   FormatColorText,
   BorderColor
+>>>>>>> 586cf80e9e935c849ecc134c5346526f43a0e8de
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -566,10 +572,42 @@ export default function ReportWorkspaceStudio() {
       : null;
   const currentSection = selectedSectionIndex !== null ? sections[selectedSectionIndex] : null;
 
+  const handleMoveElement = (sectionIndex, elementIndex, direction) => {
+    const updatedSections = [...sections];
+    const targetSection = updatedSections[sectionIndex];
+    const elementsList = [...targetSection.elements];
+
+    const targetIndex = direction === 'up' ? elementIndex - 1 : elementIndex + 1;
+
+    // Guard clause against layout bounds execution errors
+    if (targetIndex < 0 || targetIndex >= elementsList.length) return;
+
+    // Swap places safely
+    const temp = elementsList[elementIndex];
+    elementsList[elementIndex] = elementsList[targetIndex];
+    elementsList[targetIndex] = temp;
+
+    updatedSections[sectionIndex].elements = elementsList;
+    setSections(updatedSections);
+  };
+
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f4f6f9', overflow: 'hidden' }}>
+    <Box
+      sx={{
+        minHeight: '100vh', // Changed from height: '100vh' to allow natural page growth
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: '#f4f6f9',
+        overflowY: 'auto' // Changed from hidden to allow scrolling as components accumulate
+      }}
+    >
       {/* ================= 1. TOP GLOBAL APP HEADER BAR NAVIGATION ================= */}
-      <AppBar position="static" color="default" sx={{ borderBottom: '1px solid #dcdcdc', bgcolor: '#ffffff' }} elevation={0}>
+      <AppBar
+        position="sticky" // Changed to sticky so the toolbar stays fixed at the top while scrolling down long reports
+        color="default"
+        sx={{ borderBottom: '1px solid #dcdcdc', bgcolor: '#ffffff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        elevation={0}
+      >
         <Toolbar variant="dense" sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Box display="flex" alignItems="center" gap={2}>
             <Box
@@ -589,10 +627,11 @@ export default function ReportWorkspaceStudio() {
             </Box>
             <TextField
               variant="standard"
-              size="small"
+              size="medium"
+              placeholder="Untitled Report"
               value={reportName}
               onChange={(e) => setReportName(e.target.value)}
-              inputProps={{ style: { fontWeight: 'bold', fontSize: 16, width: 420 } }}
+              inputProps={{ style: { fontWeight: 'bold', fontSize: 18, width: 850 } }}
             />
           </Box>
           <Box display="flex" gap={1}>
@@ -611,62 +650,99 @@ export default function ReportWorkspaceStudio() {
           </Box>
         </Toolbar>
       </AppBar>
-
       {/* Main Studio Split Grid Frame */}
-      <Box sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* ================= 2. CENTRAL BUILDER WORKSPACE REPORT AREA (Left/Center Canvas) ================= */}
+      <Box sx={{ flexGrow: 1, display: 'flex', minHeight: 'cbd5e0' }}>
+        {/* ================= 2. CENTRAL BUILDER WORKSPACE REPORT AREA ================= */}
         <Box
           sx={{
             flexGrow: 1,
-            overflowY: 'auto',
-            p: 4,
+            p: { xs: 2, md: 4 },
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 2,
-            bgcolor: '#eaecee'
+            gap: 3,
+            bgcolor: '#f0f3f6' // Slightly softer Google Forms-like background
           }}
         >
-          {/* --- INLINED GLOBAL HEADER PARAMETERS SHEET --- */}
+          {/* --- GOOGLE FORMS STYLE HEADER CARD --- */}
           <Card
             sx={{
-              width: 816,
+              width: '100%',
+              maxWidth: 1370, // Standard Google Forms width preference
               bgcolor: '#ffffff',
-              border: '1px solid #cbd5e0',
-              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+              borderRadius: 2,
+              border: '1px solid #dadce0',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+              position: 'relative',
+              overflow: 'visible', // Keeps the top strip layout crisp
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '10px', // Iconic Google Forms top accent bar
+                backgroundColor: '#673ab7', // Classic form purple (change to #1976d2 if you prefer your brand blue)
+                borderTopLeftRadius: '7px',
+                borderTopRightRadius: '7px'
+              }
             }}
           >
-            <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
-                <TextField
-                  label="Global Report Title Label"
-                  fullWidth
-                  size="small"
-                  value={header.title}
-                  onChange={(e) => setHeader({ ...header, title: e.target.value })}
-                />
-                <TextField
-                  label="Sub Title Description String"
-                  fullWidth
-                  size="small"
-                  value={header.subTitle}
-                  onChange={(e) => setHeader({ ...header, subTitle: e.target.value })}
-                />
+            <CardContent sx={{ p: 4, pt: 5, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Main Title Field */}
+              <TextField
+                placeholder="Form Title"
+                variant="standard"
+                fullWidth
+                value={header.title}
+                onChange={(e) => setHeader({ ...header, title: e.target.value })}
+                inputProps={{
+                  style: { fontSize: '32px', fontFamily: 'Google Sans, Roboto, Arial', fontWeight: 400 }
+                }}
+                InputProps={{ disableUnderline: false }}
+                sx={{
+                  '& .MuiInput-root:before': { borderBottomColor: 'transparent' }, // Hides default line until focus
+                  '& .MuiInput-root:hover:not(.Mui-disabled):before': { borderBottomColor: 'rgba(0, 0, 0, 0.12)' }
+                }}
+              />
+
+              {/* Subtitle / Description Field */}
+              <TextField
+                placeholder="Form description"
+                variant="standard"
+                fullWidth
+                multiline
+                value={header.subTitle}
+                onChange={(e) => setHeader({ ...header, subTitle: e.target.value })}
+                inputProps={{ style: { fontSize: '14px', fontFamily: 'Roboto, Arial' } }}
+                sx={{
+                  '& .MuiInput-root:before': { borderBottomColor: 'transparent' },
+                  '& .MuiInput-root:hover:not(.Mui-disabled):before': { borderBottomColor: 'rgba(0, 0, 0, 0.12)' }
+                }}
+              />
+
+              {/* Metadata section (Analyst & Date) */}
+              <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={3}>
                 <TextField
                   label="Lead Analyst Author Identity"
+                  variant="filled"
                   fullWidth
                   size="small"
                   value={header.analystName}
                   onChange={(e) => setHeader({ ...header, analystName: e.target.value })}
+                  sx={{ bgcolor: '#f8f9fa' }}
                 />
+
                 <TextField
                   label="Generation Context Clock Date"
                   type="date"
+                  variant="filled"
                   fullWidth
                   size="small"
                   InputLabelProps={{ shrink: true }}
                   value={header.date}
                   onChange={(e) => setHeader({ ...header, date: e.target.value })}
+                  sx={{ bgcolor: '#f8f9fa' }}
                 />
               </Box>
             </CardContent>
@@ -680,18 +756,20 @@ export default function ReportWorkspaceStudio() {
                 setSelectedSectionIndex(sIndex);
               }}
               sx={{
-                width: 'fit-content',
-                minWidth: '816px',
-                height: 'fit-content',
-                minHeight: '1500px',
+                width: '100%',
+                maxWidth: '1370px', // Matches standard Google Forms width ceiling
+                mx: 'auto',
+                mb: 3,
+                height: 'auto',
                 bgcolor: '#ffffff',
                 overflow: 'visible',
                 position: 'relative',
                 border: selectedSectionIndex === sIndex ? '2px solid #1976d2' : '1px solid #cbd5e0',
-                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                borderLeft: selectedSectionIndex === sIndex ? '6px solid #1976d2' : '1px solid #cbd5e0',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.1)'
               }}
             >
-              <CardContent sx={{ p: 3, height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ p: 3, boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
                 {/* Core Descriptive Text Parameters Header Layer Grid */}
                 <Box display="flex" flexDirection="column" gap={1} mb={2}>
                   <TextField
@@ -719,106 +797,126 @@ export default function ReportWorkspaceStudio() {
                     inputProps={{ style: { fontSize: 13, color: '#7f8c8d' } }}
                   />
                 </Box>
-                <Divider sx={{ mb: 2 }} />
 
-                {/* Localized Parent Coordinate Grid Engine Wrapper Space */}
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: 460,
-                    position: 'relative',
-                    bgcolor: '#fbfcfc',
-                    border: '1px dashed #bdc3c7',
-                    borderRadius: 1,
-                    overflow: 'hidden',
-                    flexGrow: 1
-                  }}
-                >
-                  {section.elements.map((el) => (
-                    <Rnd
-                      key={el.id}
-                      size={{ width: el.w, height: el.h }}
-                      position={{ x: el.x, y: el.y }}
-                      onDragStop={(e, d) => handleUpdateSpatial(sIndex, el.id, { x: d.x, y: d.y })}
-                      onResizeStop={(e, dir, ref, delta, pos) => {
-                        handleUpdateSpatial(sIndex, el.id, {
-                          w: parseInt(ref.style.width),
-                          h: parseInt(ref.style.height),
-                          ...pos
-                        });
-                      }}
-                      bounds="parent"
-                      dragHandleClassName="drag-handle-trigger-zone"
-                      style={{
-                        border: selectedElementId === el.id ? '2px solid #e67e22' : '1px dashed #cbd5e1',
-                        zIndex: el.zIndex || 1,
-                        padding: '26px 4px 4px 4px',
-                        background: '#ffffff',
-                        boxSizing: 'border-box'
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedElementId(el.id);
-                        setSelectedSectionIndex(sIndex);
-                      }}
-                    >
-                      {/* ================= NATIVE COMPONENT IN-PLACE CONTROLS HEADER BAR ================= */}
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Full-Width Component Vertical Stack Space (Canvas Removed) */}
+                <Box display="flex" flexDirection="column" gap={3} sx={{ width: '100%', flexGrow: 1 }}>
+                  {section.elements &&
+                    section.elements.map((el, elIndex) => (
                       <Box
-                        className="drag-handle-trigger-zone"
+                        key={el.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedElementId(el.id);
+                          setSelectedSectionIndex(sIndex);
+                        }}
                         sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: 24,
-                          bgcolor: selectedElementId === el.id ? '#e67e22' : '#f1f5f9',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          px: 1,
-                          userSelect: 'none',
-                          cursor: 'move'
+                          width: '100%',
+                          border: selectedElementId === el.id ? '2px solid #e67e22' : '1px solid #cbd5e1',
+                          borderRadius: 1,
+                          padding: '36px 16px 16px 16px', // Shifted up padding to comfortably sit below header
+                          background: '#ffffff',
+                          boxSizing: 'border-box',
+                          position: 'relative'
                         }}
                       >
-                        <Typography
-                          variant="caption"
-                          sx={{ color: selectedElementId === el.id ? '#fff' : '#475569', fontWeight: 'bold', fontSize: 10 }}
+                        {/* ================= NATIVE COMPONENT IN-PLACE CONTROLS HEADER BAR ================= */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: 28,
+                            bgcolor: selectedElementId === el.id ? '#e67e22' : '#f1f5f9',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            px: 2,
+                            userSelect: 'none',
+                            borderTopLeftRadius: '3px',
+                            borderTopRightRadius: '3px'
+                          }}
                         >
-                          {el.type.toUpperCase()} OBJECT COMPONENT
-                        </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: selectedElementId === el.id ? '#fff' : '#475569', fontWeight: 'bold', fontSize: 10 }}
+                          >
+                            {el.type.toUpperCase()} OBJECT COMPONENT
+                          </Typography>
 
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <IconButton
-                            size="small"
-                            sx={{ p: 0.1, color: selectedElementId === el.id ? '#fff' : 'inherit' }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDuplicateElement(sIndex, el.id);
-                            }}
-                            title="Duplicate Node Element"
-                          >
-                            <ContentCopy style={{ fontSize: 13 }} />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            sx={{ p: 0.1, color: selectedElementId === el.id ? '#ffccd5' : 'inherit' }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteElement(sIndex, el.id);
-                            }}
-                            title="Delete Node Element"
-                          >
-                            <Delete style={{ fontSize: 13 }} />
-                          </IconButton>
-                          <Box
-                            sx={{ display: 'flex', alignItems: 'center', color: selectedElementId === el.id ? '#fff' : '#94a3b8', ml: 0.5 }}
-                          >
-                            <DragIndicator style={{ fontSize: 14 }} />
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            {/* Element Reordering Direction Controls inside Header */}
+                            <IconButton
+                              size="small"
+                              disabled={elIndex === 0}
+                              sx={{ p: 0.1, color: selectedElementId === el.id ? '#fff' : 'inherit' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMoveElement(sIndex, elIndex, 'up');
+                              }}
+                              title="Move Element Up"
+                            >
+                              <ArrowUpward style={{ fontSize: 14 }} />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              disabled={elIndex === section.elements.length - 1}
+                              sx={{ p: 0.1, color: selectedElementId === el.id ? '#fff' : 'inherit' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMoveElement(sIndex, elIndex, 'down');
+                              }}
+                              title="Move Element Down"
+                            >
+                              <ArrowDownward style={{ fontSize: 14 }} />
+                            </IconButton>
+
+                            <Divider
+                              orientation="vertical"
+                              flexItem
+                              sx={{ mx: 0.5, bgcolor: selectedElementId === el.id ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.1)' }}
+                            />
+
+                            <IconButton
+                              size="small"
+                              sx={{ p: 0.1, color: selectedElementId === el.id ? '#fff' : 'inherit' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDuplicateElement(sIndex, el.id);
+                              }}
+                              title="Duplicate Node Element"
+                            >
+                              <ContentCopy style={{ fontSize: 13 }} />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              sx={{ p: 0.1, color: selectedElementId === el.id ? '#ffccd5' : 'inherit' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteElement(sIndex, el.id);
+                              }}
+                              title="Delete Node Element"
+                            >
+                              <Delete style={{ fontSize: 13 }} />
+                            </IconButton>
                           </Box>
                         </Box>
-                      </Box>
 
+<<<<<<< HEAD
+                        {/* Framework Node Display Viewport Content Render Frame Switch */}
+                        <Box sx={{ width: '100%', height: 'auto', overflow: 'hidden', position: 'relative' }}>
+                          {/* TEXT BLOCK COMPONENT & FUNCTIONAL FORMATTING TOOLBAR STRIP */}
+                          {el.type === 'text' && (
+                            <Box display="flex" flexDirection="column" sx={{ width: '100%' }}>
+                              {selectedElementId === el.id && (
+                                <Box
+                                  display="flex"
+                                  gap={0.2}
+                                  p={0.2}
+=======
                       {/* Framework Node Display Viewport Content Render Frame Switch */}
                       {/* Element Framework Routing Content Layer Switch */}
                       <Box sx={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
@@ -1104,78 +1202,105 @@ export default function ReportWorkspaceStudio() {
                               >
                                 <IconButton
                                   size="small"
+>>>>>>> 586cf80e9e935c849ecc134c5346526f43a0e8de
                                   sx={{
-                                    p: 0.2,
-                                    bgcolor: !el.imageAlignment || el.imageAlignment === 'Left' ? '#cbd5e1' : 'transparent',
-                                    borderRadius: '4px'
+                                    bgcolor: '#f8fafc',
+                                    borderBottom: '1px solid #e2e8f0',
+                                    mb: 1,
+                                    borderRadius: '4px',
+                                    alignItems: 'center'
                                   }}
-                                  onClick={() => {
-                                    const updated = [...sections];
-                                    updated[sIndex].elements = updated[sIndex].elements.map((item) =>
-                                      item.id === el.id ? { ...item, imageAlignment: 'Left' } : item
-                                    );
-                                    setSections(updated);
-                                  }}
-                                  title="Align Left"
                                 >
-                                  <FormatAlignLeft style={{ fontSize: 14 }} />
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  sx={{ p: 0.2, bgcolor: el.imageAlignment === 'Center' ? '#cbd5e1' : 'transparent', borderRadius: '4px' }}
-                                  onClick={() => {
-                                    const updated = [...sections];
-                                    updated[sIndex].elements = updated[sIndex].elements.map((item) =>
-                                      item.id === el.id ? { ...item, imageAlignment: 'Center' } : item
-                                    );
-                                    setSections(updated);
-                                  }}
-                                  title="Align Center"
-                                >
-                                  <FormatAlignCenter style={{ fontSize: 14 }} />
-                                </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    sx={{ p: 0.2, bgcolor: el.isBold ? '#cbd5e1' : 'transparent', borderRadius: '4px' }}
+                                    onClick={() => handleToggleFormat(sIndex, el.id, 'isBold')}
+                                  >
+                                    <FormatBold style={{ fontSize: 14 }} />
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    sx={{ p: 0.2, bgcolor: el.isItalic ? '#cbd5e1' : 'transparent', borderRadius: '4px' }}
+                                    onClick={() => handleToggleFormat(sIndex, el.id, 'isItalic')}
+                                  >
+                                    <FormatItalic style={{ fontSize: 14 }} />
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    sx={{ p: 0.2, bgcolor: el.isBullet ? '#cbd5e1' : 'transparent', borderRadius: '4px' }}
+                                    onClick={() => handleToggleFormat(sIndex, el.id, 'isBullet')}
+                                  >
+                                    <FormatListBulleted style={{ fontSize: 14 }} />
+                                  </IconButton>
 
-                                <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+                                  <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
 
-                                {/* Dynamic Image URL Prompt Input Link */}
-                                <Button
-                                  size="small"
-                                  variant="text"
-                                  startIcon={<CloudUpload style={{ fontSize: 12 }} />}
-                                  onClick={() => {
-                                    const newUrl = prompt('Enter a fresh network Image URL link destination:', el.imageUrl);
-                                    if (newUrl !== null) {
+                                  <IconButton
+                                    size="small"
+                                    sx={{ p: 0.2, bgcolor: el.imageAlignment === 'Left' ? '#cbd5e1' : 'transparent', borderRadius: '4px' }}
+                                    onClick={() => {
                                       const updated = [...sections];
                                       updated[sIndex].elements = updated[sIndex].elements.map((item) =>
-                                        item.id === el.id ? { ...item, imageUrl: newUrl } : item
+                                        item.id === el.id ? { ...item, imageAlignment: 'Left' } : item
                                       );
                                       setSections(updated);
+                                    }}
+                                  >
+                                    <FormatAlignLeft style={{ fontSize: 14 }} />
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    sx={{
+                                      p: 0.2,
+                                      bgcolor: el.imageAlignment === 'Center' ? '#cbd5e1' : 'transparent',
+                                      borderRadius: '4px'
+                                    }}
+                                    onClick={() => {
+                                      const updated = [...sections];
+                                      updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                        item.id === el.id ? { ...item, imageAlignment: 'Center' } : item
+                                      );
+                                      setSections(updated);
+                                    }}
+                                  >
+                                    <FormatAlignCenter style={{ fontSize: 14 }} />
+                                  </IconButton>
+                                </Box>
+                              )}
+
+                              <Box sx={{ display: 'flex', width: '100%', pl: el.isBullet ? 2 : 0 }}>
+                                {el.isBullet && (
+                                  <Typography sx={{ mt: '5px', fontSize: 13, fontWeight: el.isBold ? 'bold' : 'normal' }}>•</Typography>
+                                )}
+                                <TextField
+                                  fullWidth
+                                  multiline
+                                  variant="standard"
+                                  placeholder="Type structural analysis notes right here..."
+                                  value={el.textContent}
+                                  onChange={(e) => {
+                                    const updated = [...sections];
+                                    updated[sIndex].elements = updated[sIndex].elements.map((element) =>
+                                      element.id === el.id ? { ...element, textContent: e.target.value } : element
+                                    );
+                                    setSections(updated);
+                                  }}
+                                  InputProps={{ disableUnderline: selectedElementId !== el.id }}
+                                  inputProps={{
+                                    style: {
+                                      fontSize: 13,
+                                      textAlign: el.imageAlignment?.toLowerCase() || 'left',
+                                      fontWeight: el.isBold ? 'bold' : 'normal',
+                                      fontStyle: el.isItalic ? 'italic' : 'normal',
+                                      lineHeight: '1.4',
+                                      padding: '4px'
                                     }
                                   }}
-                                  sx={{ fontSize: 10, py: 0, px: 1, minWidth: 'auto', textTransform: 'none' }}
-                                >
-                                  Change Source URL
-                                </Button>
-                                {/* TRIGGER COMPUTATIONAL HARDWARE INPUT DIALOGUE BOX */}
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  color="primary"
-                                  startIcon={<CloudUpload style={{ fontSize: 12 }} />}
-                                  onClick={() => fileInputRef.current.click()}
-                                  sx={{ fontSize: 10, py: 0, px: 1, textTransform: 'none', height: 20 }}
-                                >
-                                  Upload from Computer
-                                </Button>
-                                {/* Hidden Pipeline Frame stream input */}
-                                <input
-                                  type="file"
-                                  ref={fileInputRef}
-                                  accept="image/*"
-                                  style={{ display: 'none' }}
-                                  onChange={(e) => handleLocalImageFileUploadStream(e, sIndex, el.id)}
+                                  sx={{ width: '100%', flexGrow: 1 }}
                                 />
                               </Box>
+<<<<<<< HEAD
+=======
                             )}
 
                             {/* Image Display Frame Canvas Panel */}
@@ -1219,27 +1344,126 @@ export default function ReportWorkspaceStudio() {
                                 }}
                                 sx={{ mt: 0.5 }}
                               />
+>>>>>>> 586cf80e9e935c849ecc134c5346526f43a0e8de
                             </Box>
-                          </Box>
-                        )}
+                          )}
 
+                          {/* ================= IMAGE COMPONENT BLOCK ENGINE ================= */}
+                          {el.type === 'image' && (
+                            <Box display="flex" flexDirection="column" sx={{ width: '100%' }}>
+                              {selectedElementId === el.id && (
+                                <Box
+                                  display="flex"
+                                  gap={0.5}
+                                  p={0.2}
+                                  sx={{
+                                    bgcolor: '#f8fafc',
+                                    borderBottom: '1px solid #e2e8f0',
+                                    mb: 1,
+                                    borderRadius: '4px',
+                                    alignItems: 'center'
+                                  }}
+                                >
+                                  <IconButton
+                                    size="small"
+                                    sx={{
+                                      p: 0.2,
+                                      bgcolor: !el.imageAlignment || el.imageAlignment === 'Left' ? '#cbd5e1' : 'transparent',
+                                      borderRadius: '4px'
+                                    }}
+                                    onClick={() => {
+                                      const updated = [...sections];
+                                      updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                        item.id === el.id ? { ...item, imageAlignment: 'Left' } : item
+                                      );
+                                      setSections(updated);
+                                    }}
+                                    title="Align Left"
+                                  >
+                                    <FormatAlignLeft style={{ fontSize: 14 }} />
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    sx={{
+                                      p: 0.2,
+                                      bgcolor: el.imageAlignment === 'Center' ? '#cbd5e1' : 'transparent',
+                                      borderRadius: '4px'
+                                    }}
+                                    onClick={() => {
+                                      const updated = [...sections];
+                                      updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                        item.id === el.id ? { ...item, imageAlignment: 'Center' } : item
+                                      );
+                                      setSections(updated);
+                                    }}
+                                    title="Align Center"
+                                  >
+                                    <FormatAlignCenter style={{ fontSize: 14 }} />
+                                  </IconButton>
+
+                                  <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    startIcon={<CloudUpload style={{ fontSize: 12 }} />}
+                                    onClick={() => {
+                                      const newUrl = prompt('Enter a fresh network Image URL link destination:', el.imageUrl);
+                                      if (newUrl !== null) {
+                                        const updated = [...sections];
+                                        updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                          item.id === el.id ? { ...item, imageUrl: newUrl } : item
+                                        );
+                                        setSections(updated);
+                                      }
+                                    }}
+                                    sx={{ fontSize: 10, py: 0, px: 1, minWidth: 'auto', textTransform: 'none' }}
+                                  >
+                                    Change Source URL
+                                  </Button>
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="primary"
+                                    startIcon={<CloudUpload style={{ fontSize: 12 }} />}
+                                    onClick={() => fileInputRef.current.click()}
+                                    sx={{ fontSize: 10, py: 0, px: 1, textTransform: 'none', height: 20 }}
+                                  >
+                                    Upload from Computer
+                                  </Button>
+                                  <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    onChange={(e) => handleLocalImageFileUploadStream(e, sIndex, el.id)}
+                                  />
+                                </Box>
+                              )}
+
+<<<<<<< HEAD
+=======
                         {/* ================= TABLE MATRIX ENGINE WITH STRUCTURAL DIMENSION EDITORS ================= */}
                         {el.type === 'table' && (
                           <Box display="flex" flexDirection="column" sx={{ width: '100%', height: '100%' }}>
                             {selectedElementId === el.id && (
+>>>>>>> 586cf80e9e935c849ecc134c5346526f43a0e8de
                               <Box
+                                width="100%"
                                 display="flex"
-                                gap={0.5}
-                                p={0.2}
-                                sx={{
-                                  bgcolor: '#f8fafc',
-                                  borderBottom: '1px solid #e2e8f0',
-                                  mb: 0.5,
-                                  borderRadius: '4px',
-                                  alignItems: 'center',
-                                  flexWrap: 'wrap'
-                                }}
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems={el.imageAlignment === 'Center' ? 'center' : 'flex-start'}
+                                sx={{ overflow: 'hidden', p: 0.5 }}
                               >
+<<<<<<< HEAD
+                                <img
+                                  src={el.imageUrl || 'https://via.placeholder.com/400x200?text=Missing+Image+Asset+Node'}
+                                  alt="Data Plot Context Layout"
+                                  style={{ width: '100%', maxWidth: '500px', height: 'auto', objectFit: 'contain' }}
+                                  draggable={false}
+                                />
+=======
                                 <Button
                                   size="small"
                                   variant="text"
@@ -1329,83 +1553,166 @@ export default function ReportWorkspaceStudio() {
                                 </Button>
                               </Box>
                             )}
+>>>>>>> 586cf80e9e935c849ecc134c5346526f43a0e8de
 
-                            <Box sx={{ p: 0.5, width: '100%', flexGrow: 1, overflow: 'auto' }}>
-                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
-                                <tbody>
-                                  {el.tableData.map((row, ri) => (
-                                    <tr key={ri} style={{ background: ri === 0 ? '#f1f5f9' : 'transparent' }}>
-                                      {row.map((cell, ci) => (
-                                        <td
-                                          key={ci}
-                                          style={{
-                                            border: '1px solid #cbd5e1',
-                                            padding: '2px',
-                                            textAlign: 'center',
-                                            background: ri === 0 ? '#f1f5f9' : '#ffffff'
-                                          }}
-                                        >
-                                          <input
-                                            type="text"
-                                            value={cell}
-                                            disabled={selectedElementId !== el.id}
-                                            onChange={(e) => {
-                                              const updated = [...sections];
-                                              updated[sIndex].elements = updated[sIndex].elements.map((item) => {
-                                                if (item.id === el.id) {
-                                                  const gridCopy = item.tableData.map((r) => [...r]);
-                                                  gridCopy[ri][ci] = e.target.value;
-                                                  return { ...item, tableData: gridCopy };
-                                                }
-                                                return item;
-                                              });
-                                              setSections(updated);
-                                            }}
-                                            style={{
-                                              width: '100%',
-                                              border: 'none',
-                                              background: 'transparent',
-                                              textAlign: 'center',
-                                              fontSize: '11px',
-                                              fontWeight: ri === 0 ? 'bold' : 'normal',
-                                              color: '#334155',
-                                              outline: 'none'
-                                            }}
-                                          />
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                              <TextField
-                                fullWidth
-                                variant="standard"
-                                placeholder="Add table index notations summary description data..."
-                                value={el.tableLegend || ''}
-                                onChange={(e) => {
-                                  const updated = [...sections];
-                                  updated[sIndex].elements = updated[sIndex].elements.map((item) =>
-                                    item.id === el.id ? { ...item, tableLegend: e.target.value } : item
-                                  );
-                                  setSections(updated);
-                                }}
-                                InputProps={{ disableUnderline: selectedElementId !== el.id }}
-                                inputProps={{ style: { fontSize: 11, fontStyle: 'italic', color: '#64748b', marginTop: '4px' } }}
-                              />
+                                <TextField
+                                  fullWidth
+                                  variant="standard"
+                                  placeholder="Add caption / figure asset legend summary notation label context..."
+                                  value={el.imageLegend || ''}
+                                  onChange={(e) => {
+                                    const updated = [...sections];
+                                    updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                      item.id === el.id ? { ...item, imageLegend: e.target.value } : item
+                                    );
+                                    setSections(updated);
+                                  }}
+                                  InputProps={{ disableUnderline: selectedElementId !== el.id }}
+                                  inputProps={{
+                                    style: {
+                                      fontSize: 11,
+                                      fontStyle: 'italic',
+                                      textAlign: el.imageAlignment === 'Center' ? 'center' : 'left',
+                                      color: '#475569'
+                                    }
+                                  }}
+                                  sx={{ mt: 1 }}
+                                />
+                              </Box>
                             </Box>
-                          </Box>
-                        )}
+                          )}
+
+                          {/* ================= TABLE NODE BLOCK ENGINE ================= */}
+                          {el.type === 'table' && (
+                            <Box display="flex" flexDirection="column" sx={{ width: '100%' }}>
+                              {selectedElementId === el.id && (
+                                <Box
+                                  display="flex"
+                                  gap={0.5}
+                                  p={0.2}
+                                  sx={{
+                                    bgcolor: '#f8fafc',
+                                    borderBottom: '1px solid #e2e8f0',
+                                    mb: 1,
+                                    borderRadius: '4px',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap'
+                                  }}
+                                >
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    onClick={() => handleInsertTableRow(sIndex, el.id)}
+                                    sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto', fontWeight: 'bold' }}
+                                  >
+                                    + Add Row
+                                  </Button>
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    onClick={() => handleInsertTableColumn(sIndex, el.id)}
+                                    sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto', fontWeight: 'bold' }}
+                                  >
+                                    + Add Col
+                                  </Button>
+                                  <Divider orientation="vertical" flexItem sx={{ mx: 0.2 }} />
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    color="error"
+                                    onClick={() => handleDeleteTableRow(sIndex, el.id)}
+                                    sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto' }}
+                                  >
+                                    - Remove Row
+                                  </Button>
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    color="error"
+                                    onClick={() => handleDeleteTableColumn(sIndex, el.id)}
+                                    sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto' }}
+                                  >
+                                    - Remove Col
+                                  </Button>
+                                </Box>
+                              )}
+
+                              <Box sx={{ p: 0.5, width: '100%', overflow: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+                                  <tbody>
+                                    {el.tableData.map((row, ri) => (
+                                      <tr key={ri} style={{ background: ri === 0 ? '#f1f5f9' : 'transparent' }}>
+                                        {row.map((cell, ci) => (
+                                          <td
+                                            key={ci}
+                                            style={{
+                                              border: '1px solid #cbd5e1',
+                                              padding: '4px',
+                                              textAlign: 'center',
+                                              background: ri === 0 ? '#f1f5f9' : '#ffffff'
+                                            }}
+                                          >
+                                            <input
+                                              type="text"
+                                              value={cell}
+                                              disabled={selectedElementId !== el.id}
+                                              onChange={(e) => {
+                                                const updated = [...sections];
+                                                updated[sIndex].elements = updated[sIndex].elements.map((item) => {
+                                                  if (item.id === el.id) {
+                                                    const gridCopy = item.tableData.map((r) => [...r]);
+                                                    gridCopy[ri][ci] = e.target.value;
+                                                    return { ...item, tableData: gridCopy };
+                                                  }
+                                                  return item;
+                                                });
+                                                setSections(updated);
+                                              }}
+                                              style={{
+                                                width: '100%',
+                                                border: 'none',
+                                                background: 'transparent',
+                                                textAlign: 'center',
+                                                fontSize: '11px',
+                                                fontWeight: ri === 0 ? 'bold' : 'normal',
+                                                color: '#334155',
+                                                outline: 'none'
+                                              }}
+                                            />
+                                          </td>
+                                        ))}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                                <TextField
+                                  fullWidth
+                                  variant="standard"
+                                  placeholder="Add table index notations summary description data..."
+                                  value={el.tableLegend || ''}
+                                  onChange={(e) => {
+                                    const updated = [...sections];
+                                    updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                      item.id === el.id ? { ...item, tableLegend: e.target.value } : item
+                                    );
+                                    setSections(updated);
+                                  }}
+                                  InputProps={{ disableUnderline: selectedElementId !== el.id }}
+                                  inputProps={{ style: { fontSize: 11, fontStyle: 'italic', color: '#64748b', marginTop: '4px' } }}
+                                />
+                              </Box>
+                            </Box>
+                          )}
+                        </Box>
                       </Box>
-                    </Rnd>
-                  ))}
+                    ))}
                 </Box>
 
                 {/* Section Level Actions Controls Footer bar */}
                 <Box
                   display="flex"
                   justifyContent="space-between"
-                  mt={2}
+                  mt={4}
                   bgcolor="#f8f9fa"
                   p={1}
                   borderRadius={1}
