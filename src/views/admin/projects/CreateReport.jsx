@@ -18,6 +18,8 @@ import {
   Switch,
   FormControlLabel,
   List,
+  Select,
+  MenuItem,
   ListItem,
   ListItemButton,
   ListItemIcon,
@@ -45,9 +47,10 @@ import {
   FormatListBulleted,
   FormatAlignLeft,
   FormatAlignCenter,
-  AddCircleOutline,
-  ImageOutlined,
-  GridOnOutlined
+  FormatUnderlined,
+  FormatAlignRight,
+  FormatColorText,
+  BorderColor
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -84,10 +87,16 @@ export default function ReportWorkspaceStudio() {
           zIndex: 1,
           textContent:
             'This system framework captures cross-functional system telemetry data matrices. Click here to use the active inline formatting tools.',
+
           imageAlignment: 'Left',
           isBold: false,
           isItalic: false,
-          isBullet: false
+          isUnderline: false,
+          isBullet: false,
+          fontFamily: 'Arial',
+          fontSize: 13,
+          fontColor: '#000000',
+          highlightColor: 'transparent'
         }
       ]
     }
@@ -117,25 +126,75 @@ export default function ReportWorkspaceStudio() {
   // --- Initial Data Load ---
   useEffect(() => {
     axios
-      .get(`${REACT_APP_BASE_URL}/reports/${id}/versions/${versionId}`, {
-        headers: authHeaders
-      })
+      .get(
+        `${REACT_APP_BASE_URL}/reports/${id}/versions/${versionId}`,
+
+        {
+          headers: authHeaders
+        }
+      )
+
       .then((res) => {
         console.log(res);
-        if (res.data) {
-          if (res.data.sections) setSections(res.data.sections);
-          if (res.data.header) setHeader(res.data.header);
-          if (res.data.footer) setFooter(res.data.footer);
-          if (res.data.reportName) setReportName(res.data.reportName);
+
+        if (!res.data) return;
+
+        if (res.data.sections) {
+          const normalizedSections = res.data.sections.map((section) => ({
+            ...section,
+
+            elements: section.elements.map((el) => {
+              if (el.type !== 'text') return el;
+
+              return {
+                ...el,
+
+                imageAlignment: el.imageAlignment ?? 'Left',
+
+                isBold: el.isBold ?? false,
+
+                isItalic: el.isItalic ?? false,
+
+                isUnderline: el.isUnderline ?? false,
+
+                isBullet: el.isBullet ?? false,
+
+                fontFamily: el.fontFamily ?? 'Arial',
+
+                fontSize: el.fontSize ?? 13,
+
+                fontColor: el.fontColor ?? '#000000',
+
+                highlightColor: el.highlightColor ?? 'transparent'
+              };
+            })
+          }));
+
+          setSections(normalizedSections);
+        }
+
+        if (res.data.header) {
+          setHeader(res.data.header);
+        }
+
+        if (res.data.footer) {
+          setFooter(res.data.footer);
+        }
+
+        if (res.data.reportName) {
+          setReportName(res.data.reportName);
         }
       })
-      .catch((err) => console.error('Workspace initial data download exception:', err));
+
+      .catch((err) => {
+        console.error('Workspace initial data download exception:', err);
+      });
   }, [id, versionId]);
 
   // --- Save Modifications to Server (Handles Initial / Existing Updates seamlessly) ---
   const handleSaveDraft = async () => {
     try {
-      const payload = { reportName, header, footer, sections, status: 'Draft' };
+      const payload = { reportName, header, footer, sections, status: 'draft' };
 
       // CORRECTED: Payload is 2nd argument, authHeaders config wrapper is 3rd argument
       await axios.put(`${REACT_APP_BASE_URL}/reports/${id}/versions/${versionId}`, payload, authHeaders);
@@ -256,7 +315,7 @@ export default function ReportWorkspaceStudio() {
 
       textContent: type === 'text' ? 'Enter your custom rich narrative analysis data here...' : '',
 
-      imageUrl: type === 'image' ? 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&auto=format&fit=crop' : '',
+      imageUrl: type === 'image' ? '' : '',
 
       imageLegend: '',
       imageDescription: '',
@@ -266,9 +325,9 @@ export default function ReportWorkspaceStudio() {
       tableColsCount: 3,
 
       tableData: [
-        ['Header A', 'Header B', 'Header C'],
-        ['Data 1', 'Data 2', 'Data 3'],
-        ['Data 4', 'Data 5', 'Data 6']
+        ['', '', ''],
+        ['', '', ''],
+        ['', '', '']
       ],
 
       tableLegend: '',
@@ -323,7 +382,7 @@ export default function ReportWorkspaceStudio() {
     updated[sIdx].elements = updated[sIdx].elements.map((item) => {
       if (item.id === elId) {
         const currentColsCount = item.tableData[0] ? item.tableData[0].length : 3;
-        const freshRowPlaceholder = Array(currentColsCount).fill('New cell content');
+        const freshRowPlaceholder = Array(currentColsCount).fill('');
         return { ...item, tableData: [...item.tableData, freshRowPlaceholder] };
       }
       return item;
@@ -337,7 +396,8 @@ export default function ReportWorkspaceStudio() {
       if (item.id === elId) {
         const expandedGrid = item.tableData.map((row, index) => [
           ...row,
-          index === 0 ? `Header ${String.fromCharCode(65 + row.length)}` : 'New cell data'
+          // index === 0 ? `Header ${String.fromCharCode(65 + row.length)}` : ''
+          index === 0 ? `` : ''
         ]);
         return { ...item, tableData: expandedGrid };
       }
@@ -499,13 +559,6 @@ export default function ReportWorkspaceStudio() {
     }
   };
 
-  // Get active configurations references
-  const currentElement =
-    selectedSectionIndex !== null && selectedElementId !== null
-      ? sections[selectedSectionIndex]?.elements.find((el) => el.id === selectedElementId)
-      : null;
-  const currentSection = selectedSectionIndex !== null ? sections[selectedSectionIndex] : null;
-
   const handleMoveElement = (sectionIndex, elementIndex, direction) => {
     const updatedSections = [...sections];
     const targetSection = updatedSections[sectionIndex];
@@ -525,16 +578,15 @@ export default function ReportWorkspaceStudio() {
     setSections(updatedSections);
   };
 
+  // Get active configurations references
+  const currentElement =
+    selectedSectionIndex !== null && selectedElementId !== null
+      ? sections[selectedSectionIndex]?.elements.find((el) => el.id === selectedElementId)
+      : null;
+  const currentSection = selectedSectionIndex !== null ? sections[selectedSectionIndex] : null;
+
   return (
-    <Box
-      sx={{
-        minHeight: '100vh', // Changed from height: '100vh' to allow natural page growth
-        display: 'flex',
-        flexDirection: 'column',
-        bgcolor: '#f4f6f9',
-        overflowY: 'auto' // Changed from hidden to allow scrolling as components accumulate
-      }}
-    >
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f4f6f9', overflow: 'hidden' }}>
       {/* ================= 1. TOP GLOBAL APP HEADER BAR NAVIGATION ================= */}
       <AppBar
         position="sticky" // Changed to sticky so the toolbar stays fixed at the top while scrolling down long reports
@@ -584,21 +636,23 @@ export default function ReportWorkspaceStudio() {
           </Box>
         </Toolbar>
       </AppBar>
+
       {/* Main Studio Split Grid Frame */}
-      <Box sx={{ flexGrow: 1, display: 'flex', minHeight: 'cbd5e0' }}>
-        {/* ================= 2. CENTRAL BUILDER WORKSPACE REPORT AREA ================= */}
+      <Box sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* ================= 2. CENTRAL BUILDER WORKSPACE REPORT AREA (Left/Center Canvas) ================= */}
         <Box
           sx={{
             flexGrow: 1,
-            p: { xs: 2, md: 4 },
+            overflowY: 'auto',
+            p: 4,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 3,
-            bgcolor: '#f0f3f6' // Slightly softer Google Forms-like background
+            gap: 2,
+            bgcolor: '#eaecee'
           }}
         >
-          {/* --- GOOGLE FORMS STYLE HEADER CARD --- */}
+          {/* --- INLINED GLOBAL HEADER PARAMETERS SHEET --- */}
           <Card
             sx={{
               width: '100%',
@@ -734,7 +788,7 @@ export default function ReportWorkspaceStudio() {
 
                 <Divider sx={{ mb: 3 }} />
 
-                {/* Full-Width Component Vertical Stack Space (Canvas Removed) */}
+                {/* Localized Parent Coordinate Grid Engine Wrapper Space */}
                 <Box display="flex" flexDirection="column" gap={3} sx={{ width: '100%', flexGrow: 1 }}>
                   {section.elements &&
                     section.elements.map((el, elIndex) => (
@@ -836,10 +890,21 @@ export default function ReportWorkspaceStudio() {
                             >
                               <Delete style={{ fontSize: 13 }} />
                             </IconButton>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                color: selectedElementId === el.id ? '#fff' : '#94a3b8',
+                                ml: 0.5
+                              }}
+                            >
+                              <DragIndicator style={{ fontSize: 14 }} />
+                            </Box>
                           </Box>
                         </Box>
 
                         {/* Framework Node Display Viewport Content Render Frame Switch */}
+                        {/* Element Framework Routing Content Layer Switch */}
                         <Box sx={{ width: '100%', height: 'auto', overflow: 'hidden', position: 'relative' }}>
                           {/* TEXT BLOCK COMPONENT & FUNCTIONAL FORMATTING TOOLBAR STRIP */}
                           {el.type === 'text' && (
@@ -857,59 +922,185 @@ export default function ReportWorkspaceStudio() {
                                     alignItems: 'center'
                                   }}
                                 >
-                                  <IconButton
+                                         <Select
                                     size="small"
-                                    sx={{ p: 0.2, bgcolor: el.isBold ? '#cbd5e1' : 'transparent', borderRadius: '4px' }}
-                                    onClick={() => handleToggleFormat(sIndex, el.id, 'isBold')}
-                                  >
-                                    <FormatBold style={{ fontSize: 14 }} />
-                                  </IconButton>
-                                  <IconButton
-                                    size="small"
-                                    sx={{ p: 0.2, bgcolor: el.isItalic ? '#cbd5e1' : 'transparent', borderRadius: '4px' }}
-                                    onClick={() => handleToggleFormat(sIndex, el.id, 'isItalic')}
-                                  >
-                                    <FormatItalic style={{ fontSize: 14 }} />
-                                  </IconButton>
-                                  <IconButton
-                                    size="small"
-                                    sx={{ p: 0.2, bgcolor: el.isBullet ? '#cbd5e1' : 'transparent', borderRadius: '4px' }}
-                                    onClick={() => handleToggleFormat(sIndex, el.id, 'isBullet')}
-                                  >
-                                    <FormatListBulleted style={{ fontSize: 14 }} />
-                                  </IconButton>
-
-                                  <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-
-                                  <IconButton
-                                    size="small"
-                                    sx={{ p: 0.2, bgcolor: el.imageAlignment === 'Left' ? '#cbd5e1' : 'transparent', borderRadius: '4px' }}
-                                    onClick={() => {
+                                    value={el.fontFamily || 'Arial'}
+                                    sx={{ height: 28, minWidth: 120 }}
+                                    onChange={(e) => {
                                       const updated = [...sections];
+
                                       updated[sIndex].elements = updated[sIndex].elements.map((item) =>
-                                        item.id === el.id ? { ...item, imageAlignment: 'Left' } : item
+                                        item.id === el.id ? { ...item, fontFamily: e.target.value } : item
                                       );
+
                                       setSections(updated);
                                     }}
                                   >
-                                    <FormatAlignLeft style={{ fontSize: 14 }} />
-                                  </IconButton>
-                                  <IconButton
+                                    <MenuItem value="Arial">Arial</MenuItem>
+                                    <MenuItem value="Times New Roman">Times</MenuItem>
+                                    <MenuItem value="Verdana">Verdana</MenuItem>
+                                    <MenuItem value="Courier New">Courier</MenuItem>
+                                  </Select>
+
+                                  {/* FONT SIZE */}
+
+                                  <Select
                                     size="small"
-                                    sx={{
-                                      p: 0.2,
-                                      bgcolor: el.imageAlignment === 'Center' ? '#cbd5e1' : 'transparent',
-                                      borderRadius: '4px'
-                                    }}
-                                    onClick={() => {
+                                    value={el.fontSize || 13}
+                                    sx={{ height: 28, width: 70 }}
+                                    onChange={(e) => {
                                       const updated = [...sections];
+
                                       updated[sIndex].elements = updated[sIndex].elements.map((item) =>
-                                        item.id === el.id ? { ...item, imageAlignment: 'Center' } : item
+                                        item.id === el.id ? { ...item, fontSize: e.target.value } : item
                                       );
+
                                       setSections(updated);
                                     }}
                                   >
-                                    <FormatAlignCenter style={{ fontSize: 14 }} />
+                                    {[10, 12, 13, 14, 16, 18, 20, 24, 28, 32].map((size) => (
+                                      <MenuItem key={size} value={size}>
+                                        {size}
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+
+                                  <Divider orientation="vertical" flexItem />
+
+                                  {/* BOLD */}
+
+                                  <IconButton size="small" onClick={() => handleToggleFormat(sIndex, el.id, 'isBold')}>
+                                    <FormatBold />
+                                  </IconButton>
+
+                                  {/* ITALIC */}
+
+                                  <IconButton size="small" onClick={() => handleToggleFormat(sIndex, el.id, 'isItalic')}>
+                                    <FormatItalic />
+                                  </IconButton>
+
+                                  {/* UNDERLINE */}
+
+                                  <IconButton size="small" onClick={() => handleToggleFormat(sIndex, el.id, 'isUnderline')}>
+                                    <FormatUnderlined />
+                                  </IconButton>
+
+                                  <Divider orientation="vertical" flexItem />
+
+                                  {/* TEXT COLOR */}
+
+                                  <Box display="flex" alignItems="center">
+                                    <FormatColorText fontSize="small" />
+
+                                    <input
+                                      type="color"
+                                      value={el.fontColor || '#000000'}
+                                      onChange={(e) => {
+                                        const updated = [...sections];
+
+                                        updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                          item.id === el.id ? { ...item, fontColor: e.target.value } : item
+                                        );
+
+                                        setSections(updated);
+                                      }}
+                                      style={{
+                                        width: 22,
+                                        height: 22,
+                                        border: 'none',
+                                        background: 'none'
+                                      }}
+                                    />
+                                  </Box>
+
+                                  {/* HIGHLIGHT */}
+
+                                  <Box display="flex" alignItems="center">
+                                    <BorderColor fontSize="small" />
+
+                                    <input
+                                      type="color"
+                                      value={el.highlightColor || '#ffffff'}
+                                      onChange={(e) => {
+                                        const updated = [...sections];
+
+                                        updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                          item.id === el.id ? { ...item, highlightColor: e.target.value } : item
+                                        );
+
+                                        setSections(updated);
+                                      }}
+                                      style={{
+                                        width: 22,
+                                        height: 22,
+                                        border: 'none'
+                                      }}
+                                    />
+                                  </Box>
+
+                                  <Divider orientation="vertical" flexItem />
+
+                                  {/* ALIGNMENTS */}
+
+                                  <IconButton
+                                    onClick={() => {
+                                      const updated = [...sections];
+
+                                      updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                        item.id === el.id
+                                          ? {
+                                              ...item,
+                                              imageAlignment: 'Left'
+                                            }
+                                          : item
+                                      );
+
+                                      setSections(updated);
+                                    }}
+                                  >
+                                    <FormatAlignLeft />
+                                  </IconButton>
+
+                                  <IconButton
+                                    onClick={() => {
+                                      const updated = [...sections];
+
+                                      updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                        item.id === el.id
+                                          ? {
+                                              ...item,
+                                              imageAlignment: 'Center'
+                                            }
+                                          : item
+                                      );
+
+                                      setSections(updated);
+                                    }}
+                                  >
+                                    <FormatAlignCenter />
+                                  </IconButton>
+
+                                  <IconButton
+                                    onClick={() => {
+                                      const updated = [...sections];
+
+                                      updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                        item.id === el.id
+                                          ? {
+                                              ...item,
+                                              imageAlignment: 'Right'
+                                            }
+                                          : item
+                                      );
+
+                                      setSections(updated);
+                                    }}
+                                  >
+                                    <FormatAlignRight />
+                                  </IconButton>
+
+                                  <IconButton onClick={() => handleToggleFormat(sIndex, el.id, 'isBullet')}>
+                                    <FormatListBulleted />
                                   </IconButton>
                                 </Box>
                               )}
@@ -934,15 +1125,33 @@ export default function ReportWorkspaceStudio() {
                                   InputProps={{ disableUnderline: selectedElementId !== el.id }}
                                   inputProps={{
                                     style: {
-                                      fontSize: 13,
+                                      fontSize: el.fontSize || 13,
+                                      fontFamily: el.fontFamily || 'Arial',
                                       textAlign: el.imageAlignment?.toLowerCase() || 'left',
                                       fontWeight: el.isBold ? 'bold' : 'normal',
                                       fontStyle: el.isItalic ? 'italic' : 'normal',
+                                      textDecoration: el.isUnderline ? 'underline' : 'none',
+                                      color: el.fontColor || '#000000',
+                                      backgroundColor: el.highlightColor || 'transparent',
                                       lineHeight: '1.4',
-                                      padding: '4px'
+                                      padding: '4px',
+                                      width: '100%',
+                                      boxSizing: 'border-box'
                                     }
                                   }}
-                                  sx={{ width: '100%', flexGrow: 1 }}
+                                  sx={{
+                                    width: '100%',
+                                    flexGrow: 1,
+
+                                    '& .MuiInputBase-root': {
+                                      height: '100%',
+                                      alignItems: 'flex-start'
+                                    },
+
+                                    '& textarea': {
+                                      overflow: 'auto'
+                                    }
+                                  }}
                                 />
                               </Box>
                             </Box>
@@ -950,7 +1159,8 @@ export default function ReportWorkspaceStudio() {
 
                           {/* ================= IMAGE COMPONENT BLOCK ENGINE ================= */}
                           {el.type === 'image' && (
-                            <Box display="flex" flexDirection="column" sx={{ width: '100%' }}>
+                            <Box display="flex" flexDirection="column" sx={{ width: '100%', height: '100%' }}>
+                              {/* Image Management Mini Toolbar Strip */}
                               {selectedElementId === el.id && (
                                 <Box
                                   display="flex"
@@ -1003,6 +1213,7 @@ export default function ReportWorkspaceStudio() {
 
                                   <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
 
+                                  {/* Dynamic Image URL Prompt Input Link */}
                                   <Button
                                     size="small"
                                     variant="text"
@@ -1021,6 +1232,7 @@ export default function ReportWorkspaceStudio() {
                                   >
                                     Change Source URL
                                   </Button>
+                                  {/* TRIGGER COMPUTATIONAL HARDWARE INPUT DIALOGUE BOX */}
                                   <Button
                                     size="small"
                                     variant="outlined"
@@ -1031,6 +1243,7 @@ export default function ReportWorkspaceStudio() {
                                   >
                                     Upload from Computer
                                   </Button>
+                                  {/* Hidden Pipeline Frame stream input */}
                                   <input
                                     type="file"
                                     ref={fileInputRef}
@@ -1041,21 +1254,24 @@ export default function ReportWorkspaceStudio() {
                                 </Box>
                               )}
 
+                              {/* Image Display Frame Canvas Panel */}
                               <Box
                                 width="100%"
+                                height="100%"
                                 display="flex"
                                 flexDirection="column"
                                 justifyContent="center"
                                 alignItems={el.imageAlignment === 'Center' ? 'center' : 'flex-start'}
-                                sx={{ overflow: 'hidden', p: 0.5 }}
+                                sx={{ flexGrow: 1, overflow: 'hidden', p: 0.5 }}
                               >
-                                <img
+                                 <img
                                   src={el.imageUrl || 'https://via.placeholder.com/400x200?text=Missing+Image+Asset+Node'}
-                                  alt="Data Plot Context Layout"
+                                  alt=""
                                   style={{ width: '100%', maxWidth: '500px', height: 'auto', objectFit: 'contain' }}
                                   draggable={false}
                                 />
 
+                                {/* Interactive Legend Text Input String Field */}
                                 <TextField
                                   fullWidth
                                   variant="standard"
@@ -1077,13 +1293,13 @@ export default function ReportWorkspaceStudio() {
                                       color: '#475569'
                                     }
                                   }}
-                                  sx={{ mt: 1 }}
+                                 sx={{ mt: 1 }}
                                 />
                               </Box>
                             </Box>
                           )}
 
-                          {/* ================= TABLE NODE BLOCK ENGINE ================= */}
+                          {/* ================= TABLE MATRIX ENGINE WITH STRUCTURAL DIMENSION EDITORS ================= */}
                           {el.type === 'table' && (
                             <Box display="flex" flexDirection="column" sx={{ width: '100%' }}>
                               {selectedElementId === el.id && (
@@ -1108,6 +1324,7 @@ export default function ReportWorkspaceStudio() {
                                   >
                                     + Add Row
                                   </Button>
+
                                   <Button
                                     size="small"
                                     variant="text"
@@ -1116,29 +1333,74 @@ export default function ReportWorkspaceStudio() {
                                   >
                                     + Add Col
                                   </Button>
-                                  <Divider orientation="vertical" flexItem sx={{ mx: 0.2 }} />
+
                                   <Button
                                     size="small"
-                                    variant="text"
-                                    color="error"
-                                    onClick={() => handleDeleteTableRow(sIndex, el.id)}
-                                    sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto' }}
+                                    variant="outlined"
+                                    onClick={() => {
+                                      const rows = parseInt(prompt('Rows?', '3'));
+
+                                      const cols = parseInt(prompt('Columns?', '3'));
+
+                                      if (!rows || !cols) return;
+
+                                      const matrix = Array(rows)
+                                        .fill(null)
+                                        .map(() => Array(cols).fill(''));
+
+                                      const updated = [...sections];
+
+                                      updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                        item.id === el.id
+                                          ? {
+                                              ...item,
+
+                                              tableData: matrix,
+
+                                              tableRowsCount: rows,
+
+                                              tableColsCount: cols
+                                            }
+                                          : item
+                                      );
+
+                                      setSections(updated);
+                                    }}
+                                    sx={{
+                                      fontSize: 10,
+                                      textTransform: 'none'
+                                    }}
                                   >
-                                    - Remove Row
+                                    Create Table
                                   </Button>
+
                                   <Button
                                     size="small"
-                                    variant="text"
-                                    color="error"
-                                    onClick={() => handleDeleteTableColumn(sIndex, el.id)}
-                                    sx={{ fontSize: 10, py: 0, px: 0.5, textTransform: 'none', minWidth: 'auto' }}
+                                    variant="contained"
+                                    component="label"
+                                    sx={{
+                                      fontSize: 10,
+                                      textTransform: 'none',
+                                      minWidth: 'auto'
+                                    }}
                                   >
-                                    - Remove Col
+                                    Import CSV
+                                    <input hidden type="file" accept=".csv" onChange={(e) => handleCSVImport(sIndex, el.id, e)} />
+                                  </Button>
+
+                                  <Divider orientation="vertical" flexItem />
+
+                                  <Button size="small" color="error" onClick={() => handleDeleteTableRow(sIndex, el.id)}>
+                                    - Row
+                                  </Button>
+
+                                  <Button size="small" color="error" onClick={() => handleDeleteTableColumn(sIndex, el.id)}>
+                                    - Col
                                   </Button>
                                 </Box>
                               )}
 
-                              <Box sx={{ p: 0.5, width: '100%', overflow: 'auto' }}>
+                              <Box sx={{ p: 0.5, width: '100%', flexGrow: 1, overflow: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                                   <tbody>
                                     {el.tableData.map((row, ri) => (
@@ -1148,7 +1410,7 @@ export default function ReportWorkspaceStudio() {
                                             key={ci}
                                             style={{
                                               border: '1px solid #cbd5e1',
-                                              padding: '4px',
+                                              padding: '2px',
                                               textAlign: 'center',
                                               background: ri === 0 ? '#f1f5f9' : '#ffffff'
                                             }}
@@ -1213,7 +1475,7 @@ export default function ReportWorkspaceStudio() {
                 <Box
                   display="flex"
                   justifyContent="space-between"
-                  mt={4}
+                  mt={2}
                   bgcolor="#f8f9fa"
                   p={1}
                   borderRadius={1}
