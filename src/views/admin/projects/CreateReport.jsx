@@ -54,6 +54,7 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 
+
 import REACT_APP_BASE_URL from 'utils/api';
 
 import Swal from 'sweetalert2';
@@ -235,8 +236,8 @@ export default function ReportWorkspaceStudio() {
   const handleAddSection = () => {
     const newSection = {
       id: 'sec_' + Date.now(),
-      title: 'Dynamic Analysis Section Name',
-      description: 'Enter cross-sectional execution summary notes or technical analyst descriptions here...',
+      title: '',
+      description: '',
       elements: []
     };
     setSections([...sections, newSection]);
@@ -313,13 +314,13 @@ export default function ReportWorkspaceStudio() {
 
       zIndex: section.elements.length + 1,
 
-      textContent: type === 'text' ? 'Enter your custom rich narrative analysis data here...' : '',
+      textContent: type === 'text' ? '' : '',
 
       imageUrl: type === 'image' ? '' : '',
 
       imageLegend: '',
       imageDescription: '',
-      imageAlignment: 'Center',
+      imageAlignment: 'Left',
 
       tableRowsCount: 3,
       tableColsCount: 3,
@@ -679,7 +680,7 @@ export default function ReportWorkspaceStudio() {
             <CardContent sx={{ p: 4, pt: 5, display: 'flex', flexDirection: 'column', gap: 3 }}>
               {/* Main Title Field */}
               <TextField
-                placeholder="Form Title"
+                placeholder="Header Title"
                 variant="standard"
                 fullWidth
                 value={header.title}
@@ -696,7 +697,7 @@ export default function ReportWorkspaceStudio() {
 
               {/* Subtitle / Description Field */}
               <TextField
-                placeholder="Form description"
+                placeholder="Header short description"
                 variant="standard"
                 fullWidth
                 multiline
@@ -763,7 +764,7 @@ export default function ReportWorkspaceStudio() {
                   <TextField
                     fullWidth
                     variant="standard"
-                    placeholder="Section Header Mapping Label Input String..."
+                    placeholder="Add section heading here.."
                     value={section.title}
                     onChange={(e) => {
                       const updated = [...sections];
@@ -775,7 +776,7 @@ export default function ReportWorkspaceStudio() {
                   <TextField
                     fullWidth
                     variant="standard"
-                    placeholder="Provide technical runtime execution description/context rule criteria constraints guidelines..."
+                    placeholder="Add section short description here..."
                     value={section.description}
                     onChange={(e) => {
                       const updated = [...sections];
