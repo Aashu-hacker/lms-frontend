@@ -260,7 +260,7 @@ export default function ReportsDashboard() {
       headerAlign: 'center',
       renderCell: (params) => (
         <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" sx={{ height: '100%' }}>
-          <Tooltip title="Modify Structural Layout Canvas" arrow transitionComponent={Fade}>
+          {/* <Tooltip title="Modify Structural Layout Canvas" arrow transitionComponent={Fade}>
             <IconButton
               size="small"
               color="primary"
@@ -268,7 +268,7 @@ export default function ReportsDashboard() {
             >
               <Edit fontSize="small" />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip title="Launch Live Render View Preview" arrow transitionComponent={Fade}>
             <IconButton
               size="small"
@@ -279,11 +279,11 @@ export default function ReportsDashboard() {
             </IconButton>
           </Tooltip>
           {/* <Divider orientation="vertical" variant="middle" flexItem /> */}
-          <Tooltip title="Drop Version Iteration Record" arrow transitionComponent={Fade}>
+          {/* <Tooltip title="Drop Version Iteration Record" arrow transitionComponent={Fade}>
             <IconButton size="small" color="error" onClick={() => handleDeleteRowTrack(params.row)}>
               <Delete fontSize="small" />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
         </Stack>
       )
     }

@@ -296,20 +296,30 @@ export default function ViewProjectVersions() {
 
             <Grid item xs={12} md={4}>
               <Stack spacing={2}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="warning"
-                  startIcon={<AddIcon />}
-                  onClick={() => setShowCreateVersionModal(true)}
-                >
-                  Create New Draft Version
-                </Button>
+                {!(user?.role === 'manager') && (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    color="warning"
+                    startIcon={<AddIcon />}
+                    onClick={() => setShowCreateVersionModal(true)}
+                  >
+                    Create New Draft Version
+                  </Button>
+                )}
 
-                <Button fullWidth variant="contained" sx={{ color: '#fff' }} color="secondary" startIcon={<Edit />}  onClick={() => navigate(`/admin/projects/${id}/versions/${latestVersion._id}`)}>
-                  Edit Version
-                </Button>
-
+                {!(user?.role === 'manager') && (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    sx={{ color: '#fff' }}
+                    color="secondary"
+                    startIcon={<Edit />}
+                    onClick={() => navigate(`/admin/projects/${id}/versions/${latestVersion._id}`)}
+                  >
+                    Edit Version
+                  </Button>
+                )}
                 {user?.role !== 'admin' && (
                   <Button
                     fullWidth
@@ -358,91 +368,102 @@ export default function ViewProjectVersions() {
                   }}
                 >
                   {/* // ================= UPDATED GRID ================= */}
-                  <Grid container spacing={3} alignItems="center">
-                    {/* VERSION */}
-                    <Grid item xs={12} md={2}>
-                      <Typography variant="h4">v{version.version}</Typography>
+                  {!(user?.role === 'manager' && version.status !== 'published') && (
+                    <Grid container spacing={3} alignItems="center">
+                      {/* VERSION */}
+                      <Grid item xs={12} md={2}>
+                        <Typography variant="h4">v{version.version}</Typography>
 
-                      <Chip
-                        label={version?.status ? version.status.charAt(0).toUpperCase() + version.status.slice(1) : 'Draft'}
-                        color={getStatusColor(version.status)}
-                        size="small"
-                        sx={{ mt: 1 }}
-                      />
-                    </Grid>
-
-                    {/* CREATED */}
-                    <Grid item xs={12} md={2}>
-                      <Typography variant="body2" color="text.secondary">
-                        Created
-                      </Typography>
-
-                      <Typography>{new Date(version.createdAt).toLocaleDateString()}</Typography>
-                    </Grid>
-
-                    {/* UPDATED BY */}
-                    <Grid item xs={12} md={2}>
-                      <Typography variant="body2" color="text.secondary">
-                        Updated By
-                      </Typography>
-
-                      <Typography>{version.updatedBy?.name || 'N/A'}</Typography>
-                    </Grid>
-
-                    {/* VIEW */}
-                    <Grid item xs={12} md={2}>
-                      <Button
-                        fullWidth
-                        size="small"
-                        variant="outlined"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => navigate(`/admin/projects/${id}/versions/${version._id}`)}
-                      >
-                        View
-                      </Button>
-                    </Grid>
-
-                    {/* ACTIONS */}
-                    <Grid item xs={12} md={4}>
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
-                        {/* Notify only for Draft */}
-                        {version.status === 'draft' && !version.isNotify && user?.role !== 'admin' && (
-                          <Button
-                            size="small"
-                            color="success"
-                            variant="outlined"
-                            startIcon={<IconBell />}
-                            onClick={() => handleNotifyVersion(version._id, version.version)}
-                          >
-                            Notify
-                          </Button>
-                        )}
-                        {/* Archive */}
-                        {version.status !== 'archived' && (
-                          <Button
-                            size="small"
-                            color="secondary"
-                            variant="outlined"
-                            startIcon={<IconArchive />}
-                            onClick={() => handleArchiveVersion(version._id, version.version)}
-                          >
-                            Archive
-                          </Button>
-                        )}
-
-                        {/* Delete */}
-                        <Button
+                        <Chip
+                          label={version?.status ? version.status.charAt(0).toUpperCase() + version.status.slice(1) : 'Draft'}
+                          color={getStatusColor(version.status)}
                           size="small"
-                          color="error"
+                          sx={{ mt: 1 }}
+                        />
+                      </Grid>
+
+                      {/* CREATED */}
+                      <Grid item xs={12} md={2}>
+                        <Typography variant="body2" color="text.secondary">
+                          Created
+                        </Typography>
+
+                        <Typography>{new Date(version.createdAt).toLocaleDateString()}</Typography>
+                      </Grid>
+
+                      {/* UPDATED BY */}
+                      <Grid item xs={12} md={2}>
+                        <Typography variant="body2" color="text.secondary">
+                          Updated By
+                        </Typography>
+
+                        <Typography>{version.updatedBy?.name || 'N/A'}</Typography>
+                      </Grid>
+
+                      {/* VIEW */}
+                      <Grid item xs={12} md={2}>
+                        <Button
+                          fullWidth
+                          size="small"
                           variant="outlined"
-                          startIcon={<DeleteIcon />}
-                          onClick={() => handleDeleteVersion(version._id, version.version)}
+                          startIcon={<VisibilityIcon />}
+                          onClick={() =>
+                            navigate(
+                              user?.role === 'manager'
+                                ? `/manager/reports/add-comment/${id}/versions/${version._id}`
+                                : `/admin/projects/${id}/versions/${version._id}`
+                            )
+                          }
                         >
-                          Delete
+                          View
                         </Button>
-                      </Stack>
+                      </Grid>
+
+                      {/* ACTIONS */}
+                      <Grid item xs={12} md={4}>
+                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                          {/* Notify - hide for version manager */}
+                          {version.status === 'draft' && !version.isNotify && user?.role !== 'admin' && user?.role !== 'manager' && (
+                            <Button
+                              size="small"
+                              color="success"
+                              variant="outlined"
+                              startIcon={<IconBell />}
+                              onClick={() => handleNotifyVersion(version._id, version.version)}
+                            >
+                              Notify
+                            </Button>
+                          )}
+
+                          {/* Archive - allowed for version manager */}
+                          {version.status !== 'archived' && (
+                            <Button
+                              size="small"
+                              color="secondary"
+                              variant="outlined"
+                              startIcon={<IconArchive />}
+                              onClick={() => handleArchiveVersion(version._id, version.version)}
+                            >
+                              Archive
+                            </Button>
+                          )}
+
+                          {/* Delete - hide for version manager */}
+                          {user?.role !== 'manager' && (
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              startIcon={<DeleteIcon />}
+                              onClick={() => handleDeleteVersion(version._id, version.version)}
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </Stack>
+                      </Grid>
                     </Grid>
-                  </Grid>
+                  )}
                 </Paper>
               ))}
             </Stack>

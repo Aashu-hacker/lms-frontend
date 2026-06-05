@@ -1,0 +1,887 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Rnd } from 'react-rnd';
+import {
+  Box,
+  Grid,
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Paper,
+  TextField,
+  IconButton,
+  Card,
+  CardContent,
+  Divider,
+  Tooltip,
+  Switch,
+  FormControlLabel,
+  List,
+  Select,
+  MenuItem,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  ToggleButtonGroup,
+  ToggleButton,
+  Drawer,
+  Fab,
+  Avatar,
+  Chip
+} from '@mui/material';
+import {
+  Save,
+  Visibility,
+  Publish,
+  ExitToApp,
+  AddCircle,
+  TextFields,
+  Image as ImageIcon,
+  TableChart,
+  Delete,
+  ContentCopy,
+  ArrowUpward,
+  ArrowDownward,
+  DragIndicator,
+  CloudUpload,
+  FormatBold,
+  FormatItalic,
+  FormatListBulleted,
+  FormatAlignLeft,
+  FormatAlignCenter,
+  FormatUnderlined,
+  FormatAlignRight,
+  FormatColorText,
+  BorderColor,
+} from '@mui/icons-material';
+import axios from 'axios';
+
+import AddCommentIcon from '@mui/icons-material/AddComment';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloseIcon from '@mui/icons-material/Close';
+
+import REACT_APP_BASE_URL from 'utils/api';
+
+import Swal from 'sweetalert2';
+
+export default function ReportWorkspaceStudio() {
+  const { id, versionId } = useParams();
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+  // --- Core Application State Structure ---
+  const [reportName, setReportName] = useState('Market Analytics Report');
+  const [header, setHeader] = useState({
+    title: 'Enterprise Technical Evaluation Report',
+    subTitle: 'Production Performance Data Infrastructure Audit Framework Matrix',
+    analystName: 'Alex Mercer (Lead Intelligence Architect)',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  const [sections, setSections] = useState([
+    {
+      id: 'sec_1',
+      title: 'Infrastructure Node Assessment Core Section',
+      description: 'Primary computational evaluation telemetry criteria mapping framework guidelines.',
+      elements: [
+        {
+          id: 'el_txt_1',
+          type: 'text',
+          x: 30,
+          y: 30,
+          w: 700,
+          h: 150,
+          zIndex: 1,
+          textContent:
+            'This system framework captures cross-functional system telemetry data matrices. Click here to use the active inline formatting tools.',
+
+          imageAlignment: 'Left',
+          isBold: false,
+          isItalic: false,
+          isUnderline: false,
+          isBullet: false,
+          fontFamily: 'Arial',
+          fontSize: 13,
+          fontColor: '#000000',
+          highlightColor: 'transparent'
+        }
+      ]
+    }
+  ]);
+  const [footer, setFooter] = useState({ text: '', pageNumbering: true, confidentialTag: true });
+
+  // Selection and Focus State Management
+  const [activeTab, setActiveTab] = useState('component'); // 'component' | 'styling' | 'section' | 'headerFooter'
+  const [selectedSectionIndex, setSelectedSectionIndex] = useState(null);
+  const [selectedElementId, setSelectedElementId] = useState(null);
+
+  const reportRef = useRef(null);
+
+  const [commentMode, setCommentMode] = useState(false);
+
+  const [comments, setComments] = useState([]);
+
+  const [commentPopup, setCommentPopup] = useState(false);
+
+  const [clickedPosition, setClickedPosition] = useState({
+    x: 0,
+    y: 0
+  });
+
+  const [commentText, setCommentText] = useState('');
+
+  const [commentImage, setCommentImage] = useState(null);
+
+  const [hoverComment, setHoverComment] = useState(null);
+
+  const authHeaders = {
+    Authorization: `Bearer ${localStorage.getItem('token')}`,
+    'Content-Type': 'application/json'
+  };
+
+  const getUser = () => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  };
+
+  const user = getUser();
+
+  // --- Initial Data Load ---
+  useEffect(() => {
+    axios
+      .get(
+        `${REACT_APP_BASE_URL}/reports/${id}/versions/${versionId}`,
+
+        {
+          headers: authHeaders
+        }
+      )
+
+      .then((res) => {
+        console.log(res);
+
+        if (!res.data) return;
+
+        if (res.data.sections) {
+          const normalizedSections = res.data.sections.map((section) => ({
+            ...section,
+
+            elements: section.elements.map((el) => {
+              if (el.type !== 'text') return el;
+
+              return {
+                ...el,
+
+                imageAlignment: el.imageAlignment ?? 'Left',
+
+                isBold: el.isBold ?? false,
+
+                isItalic: el.isItalic ?? false,
+
+                isUnderline: el.isUnderline ?? false,
+
+                isBullet: el.isBullet ?? false,
+
+                fontFamily: el.fontFamily ?? 'Arial',
+
+                fontSize: el.fontSize ?? 13,
+
+                fontColor: el.fontColor ?? '#000000',
+
+                highlightColor: el.highlightColor ?? 'transparent'
+              };
+            })
+          }));
+
+          setSections(normalizedSections);
+        }
+
+        if (res.data.header) {
+          setHeader(res.data.header);
+        }
+
+        if (res.data.footer) {
+          setFooter(res.data.footer);
+        }
+
+        if (res.data.reportName) {
+          setReportName(res.data.reportName);
+        }
+      })
+
+      .catch((err) => {
+        console.error('Workspace initial data download exception:', err);
+      });
+  }, [id, versionId]);
+
+  // Get active configurations references
+  const currentElement =
+    selectedSectionIndex !== null && selectedElementId !== null
+      ? sections[selectedSectionIndex]?.elements.find((el) => el.id === selectedElementId)
+      : null;
+  const currentSection = selectedSectionIndex !== null ? sections[selectedSectionIndex] : null;
+
+  const handleReportClick = (e) => {
+    if (!commentMode) return;
+
+    const rect = reportRef.current.getBoundingClientRect();
+
+    const x = e.clientX - rect.left;
+
+    const y = e.clientY - rect.top;
+
+    setClickedPosition({
+      x,
+      y
+    });
+
+    setCommentPopup(true);
+
+    setCommentMode(false);
+  };
+
+  const saveComment = () => {
+    if (!commentText.trim()) return;
+
+    setComments((prev) => [
+      ...prev,
+
+      {
+        id: Date.now(),
+
+        x: clickedPosition.x,
+
+        y: clickedPosition.y,
+
+        text: commentText
+      }
+    ]);
+
+    setCommentText('');
+
+    setCommentPopup(false);
+
+    setCommentMode(false);
+  };
+
+  return (
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f4f6f9', overflow: 'hidden' }}>
+      {/* ================= 1. TOP GLOBAL APP HEADER BAR NAVIGATION ================= */}
+      <Toolbar variant="dense" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              bgcolor: '#1976d2',
+              borderRadius: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontWeight: 'bold'
+            }}
+          >
+            B
+          </Box>
+          <TextField
+            variant="standard"
+            size="medium"
+            placeholder="Untitled Report"
+            value={reportName}
+            onChange={(e) => setReportName(e.target.value)}
+            inputProps={{ style: { fontWeight: 'bold', fontSize: 18, width: 850 }, readOnly: true }}
+          />
+        </Box>
+        <Box display="flex" gap={1}>
+          <Button size="small" variant="outlined" startIcon={<Visibility />}>
+            Preview
+          </Button>
+          <Button size="small" variant="contained" color="success" startIcon={<Publish />}>
+            Publish
+          </Button>
+          <Button size="small" variant="text" color="error" startIcon={<ExitToApp />} onClick={() => navigate(-1)}>
+            Exit
+          </Button>
+        </Box>
+      </Toolbar>
+
+      <Fab
+        variant="extended"
+        color={commentMode ? 'secondary' : 'primary'}
+        onClick={() => {
+          setCommentMode((prev) => !prev);
+
+          if (commentMode) {
+            setCommentPopup(false);
+          }
+        }}
+        sx={{
+          position: 'fixed',
+          bottom: 25,
+          right: 30,
+          zIndex: 99999
+        }}
+      >
+        <AddCommentIcon sx={{ mr: 1 }} />
+
+        {commentMode ? 'Cancel Comment' : 'Add Comment'}
+      </Fab>
+      {/* Main Studio Split Grid Frame */}
+      <Box
+        ref={reportRef}
+        onClick={handleReportClick}
+        sx={{
+          position: 'relative',
+          cursor: commentMode ? 'crosshair' : 'default',
+          flexGrow: 1,
+          overflowY: 'auto',
+          p: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 2,
+          bgcolor: '#eaecee'
+        }}
+      >
+        {/* ================= 2. CENTRAL BUILDER WORKSPACE REPORT AREA (Left/Center Canvas) ================= */}
+        <Box
+          sx={{
+            flexGrow: 1,
+            overflowY: 'auto',
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+            bgcolor: '#eaecee'
+          }}
+        >
+          {/* --- INLINED GLOBAL HEADER PARAMETERS SHEET --- */}
+          <Card
+            sx={{
+              width: '100%',
+              maxWidth: 1370, // Standard Google Forms width preference
+              bgcolor: '#ffffff',
+              borderRadius: 2,
+              border: '1px solid #dadce0',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+              position: 'relative',
+              overflow: 'visible', // Keeps the top strip layout crisp
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '10px', // Iconic Google Forms top accent bar
+                backgroundColor: '#673ab7', // Classic form purple (change to #1976d2 if you prefer your brand blue)
+                borderTopLeftRadius: '7px',
+                borderTopRightRadius: '7px'
+              }
+            }}
+          >
+            <CardContent sx={{ p: 4, pt: 5, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Main Title Field */}
+              <TextField
+                placeholder="Header Title"
+                variant="standard"
+                fullWidth
+                value={header.title}
+                onChange={(e) => setHeader({ ...header, title: e.target.value })}
+                inputProps={{
+                  style: { fontSize: '32px', fontFamily: 'Google Sans, Roboto, Arial', fontWeight: 400 }
+                }}
+                InputProps={{ disableUnderline: false, readOnly: true }}
+                sx={{
+                  '& .MuiInput-root:before': { borderBottomColor: 'transparent' }, // Hides default line until focus
+                  '& .MuiInput-root:hover:not(.Mui-disabled):before': { borderBottomColor: 'rgba(0, 0, 0, 0.12)' }
+                }}
+              />
+
+              {/* Subtitle / Description Field */}
+              <TextField
+                placeholder="Header short description"
+                variant="standard"
+                fullWidth
+                multiline
+                value={header.subTitle}
+                onChange={(e) => setHeader({ ...header, subTitle: e.target.value })}
+                InputProps={{
+                  readOnly: true
+                }}
+                inputProps={{ style: { fontSize: '14px', fontFamily: 'Roboto, Arial' } }}
+                sx={{
+                  '& .MuiInput-root:before': { borderBottomColor: 'transparent' },
+                  '& .MuiInput-root:hover:not(.Mui-disabled):before': { borderBottomColor: 'rgba(0, 0, 0, 0.12)' }
+                }}
+              />
+
+              {/* Metadata section (Analyst & Date) */}
+              <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={3}>
+                <TextField
+                  label="Lead Analyst Author Identity"
+                  variant="filled"
+                  fullWidth
+                  size="small"
+                  value={header.analystName}
+                  onChange={(e) => setHeader({ ...header, analystName: e.target.value })}
+                  InputProps={{ readOnly: true }}
+                  sx={{ bgcolor: '#f8f9fa' }}
+                />
+
+                <TextField
+                  label="Generation Context Clock Date"
+                  type="date"
+                  variant="filled"
+                  fullWidth
+                  size="small"
+                  InputLabelProps={{ shrink: true }}
+                  value={header.date}
+                  onChange={(e) => setHeader({ ...header, date: e.target.value })}
+                  InputProps={{ readOnly: true }}
+                  sx={{ bgcolor: '#f8f9fa' }}
+                />
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* ================= SECTIONS CANVAS COMPILER CYCLE ================= */}
+          {sections.map((section, sIndex) => (
+            <Card
+              key={section.id}
+              sx={{
+                width: '100%',
+                maxWidth: '1370px', // Matches standard Google Forms width ceiling
+                mx: 'auto',
+                mb: 3,
+                height: 'auto',
+                bgcolor: '#ffffff',
+                overflow: 'visible',
+                position: 'relative',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.1)'
+              }}
+            >
+              <CardContent sx={{ p: 3, boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+                {/* Core Descriptive Text Parameters Header Layer Grid */}
+                <Box display="flex" flexDirection="column" gap={1} mb={2}>
+                  <TextField
+                    fullWidth
+                    variant="standard"
+                    placeholder="Add section heading here.."
+                    value={section.title}
+                    onChange={(e) => {
+                      const updated = [...sections];
+                      updated[sIndex].title = e.target.value;
+                      setSections(updated);
+                    }}
+                    InputProps={{
+                      readOnly: true
+                    }}
+                    inputProps={{ style: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50' } }}
+                  />
+                  <TextField
+                    fullWidth
+                    variant="standard"
+                    placeholder="Add section short description here..."
+                    value={section.description}
+                    onChange={(e) => {
+                      const updated = [...sections];
+                      updated[sIndex].description = e.target.value;
+                      setSections(updated);
+                    }}
+                    InputProps={{
+                      readOnly: true
+                    }}
+                    inputProps={{ style: { fontSize: 13, color: '#7f8c8d' } }}
+                  />
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Localized Parent Coordinate Grid Engine Wrapper Space */}
+                <Box display="flex" flexDirection="column" gap={3} sx={{ width: '100%', flexGrow: 1 }}>
+                  {section.elements &&
+                    section.elements.map((el, elIndex) => (
+                      <Box
+                        key={el.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          createCommentPosition(e, el.id);
+                          setSelectedElementId(el.id);
+                          setSelectedSectionIndex(sIndex);
+                        }}
+                        sx={{
+                          width: '100%',
+                          border: selectedElementId === el.id ? '2px solid #e67e22' : '1px solid #cbd5e1',
+                          borderRadius: 1,
+                          padding: '36px 16px 16px 16px', // Shifted up padding to comfortably sit below header
+                          background: '#ffffff',
+                          boxSizing: 'border-box',
+                          position: 'relative'
+                        }}
+                      >
+                        {/* ================= NATIVE COMPONENT IN-PLACE CONTROLS HEADER BAR ================= */}
+
+                        {/* Framework Node Display Viewport Content Render Frame Switch */}
+                        {/* Element Framework Routing Content Layer Switch */}
+                        <Box sx={{ width: '100%', height: 'auto', overflow: 'hidden', position: 'relative' }}>
+                          {/* TEXT BLOCK COMPONENT & FUNCTIONAL FORMATTING TOOLBAR STRIP */}
+                          {el.type === 'text' && (
+                            <Box display="flex" flexDirection="column" sx={{ width: '100%' }}>
+                              <Box sx={{ display: 'flex', width: '100%', pl: el.isBullet ? 2 : 0 }}>
+                                {el.isBullet && (
+                                  <Typography sx={{ mt: '5px', fontSize: 13, fontWeight: el.isBold ? 'bold' : 'normal' }}>•</Typography>
+                                )}
+                                <TextField
+                                  fullWidth
+                                  multiline
+                                  variant="standard"
+                                  placeholder="Type structural analysis notes right here..."
+                                  value={el.textContent}
+                                  onChange={(e) => {
+                                    const updated = [...sections];
+                                    updated[sIndex].elements = updated[sIndex].elements.map((element) =>
+                                      element.id === el.id ? { ...element, textContent: e.target.value } : element
+                                    );
+                                    setSections(updated);
+                                  }}
+                                  InputProps={{ disableUnderline: selectedElementId !== el.id }}
+                                  inputProps={{
+                                    style: {
+                                      fontSize: el.fontSize || 13,
+                                      fontFamily: el.fontFamily || 'Arial',
+                                      textAlign: el.imageAlignment?.toLowerCase() || 'left',
+                                      fontWeight: el.isBold ? 'bold' : 'normal',
+                                      fontStyle: el.isItalic ? 'italic' : 'normal',
+                                      textDecoration: el.isUnderline ? 'underline' : 'none',
+                                      color: el.fontColor || '#000000',
+                                      backgroundColor: el.highlightColor || 'transparent',
+                                      lineHeight: '1.4',
+                                      padding: '4px',
+                                      width: '100%',
+                                      boxSizing: 'border-box'
+                                    },
+                                    readOnly: true
+                                  }}
+                                  sx={{
+                                    width: '100%',
+                                    flexGrow: 1,
+
+                                    '& .MuiInputBase-root': {
+                                      height: '100%',
+                                      alignItems: 'flex-start'
+                                    },
+
+                                    '& textarea': {
+                                      overflow: 'auto'
+                                    }
+                                  }}
+                                />
+                              </Box>
+                            </Box>
+                          )}
+
+                          {/* ================= IMAGE COMPONENT BLOCK ENGINE ================= */}
+                          {el.type === 'image' && (
+                            <Box display="flex" flexDirection="column" sx={{ width: '100%', height: '100%' }}>
+                              {/* Image Management Mini Toolbar Strip */}
+                              {/* Image Display Frame Canvas Panel */}
+                              <Box
+                                width="100%"
+                                height="100%"
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems={el.imageAlignment === 'Center' ? 'center' : 'flex-start'}
+                                sx={{ flexGrow: 1, overflow: 'hidden', p: 0.5 }}
+                              >
+                                <img
+                                  src={el.imageUrl || 'https://via.placeholder.com/400x200?text=Missing+Image+Asset+Node'}
+                                  alt=""
+                                  style={{ width: '100%', maxWidth: '500px', height: 'auto', objectFit: 'contain' }}
+                                  draggable={false}
+                                />
+
+                                {/* Interactive Legend Text Input String Field */}
+                                <TextField
+                                  fullWidth
+                                  variant="standard"
+                                  placeholder="Add caption / figure asset legend summary notation label context..."
+                                  value={el.imageLegend || ''}
+                                  onChange={(e) => {
+                                    const updated = [...sections];
+                                    updated[sIndex].elements = updated[sIndex].elements.map((item) =>
+                                      item.id === el.id ? { ...item, imageLegend: e.target.value } : item
+                                    );
+                                    setSections(updated);
+                                  }}
+                                  InputProps={{ disableUnderline: selectedElementId !== el.id }}
+                                  inputProps={{
+                                    readOnly: true,
+                                    style: {
+                                      fontSize: 11,
+                                      fontStyle: 'italic',
+                                      textAlign: el.imageAlignment === 'Center' ? 'center' : 'left',
+                                      color: '#475569'
+                                    }
+                                  }}
+                                  sx={{ mt: 1 }}
+                                />
+                              </Box>
+                            </Box>
+                          )}
+
+                          {/* ================= TABLE MATRIX ENGINE WITH STRUCTURAL DIMENSION EDITORS ================= */}
+                          {el.type === 'table' && (
+                            <Box display="flex" flexDirection="column" sx={{ width: '100%' }}>
+                              <Box sx={{ p: 0.5, width: '100%', flexGrow: 1, overflow: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+                                  <tbody>
+                                    {el.tableData.map((row, ri) => (
+                                      <tr key={ri} style={{ background: ri === 0 ? '#f1f5f9' : 'transparent' }}>
+                                        {row.map((cell, ci) => (
+                                          <td
+                                            key={ci}
+                                            style={{
+                                              border: '1px solid #cbd5e1',
+                                              padding: '2px',
+                                              textAlign: 'center',
+                                              background: ri === 0 ? '#f1f5f9' : '#ffffff'
+                                            }}
+                                          >
+                                            <input
+                                              type="text"
+                                              value={cell}
+                                              readOnly
+                                              style={{
+                                                width: '100%',
+                                                border: 'none',
+                                                background: 'transparent',
+                                                textAlign: 'center',
+                                                fontSize: '11px',
+                                                fontWeight: ri === 0 ? 'bold' : 'normal',
+                                                color: '#334155',
+                                                outline: 'none',
+                                                pointerEvents: 'none'
+                                              }}
+                                            />
+                                          </td>
+                                        ))}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+
+                                <TextField
+                                  fullWidth
+                                  variant="standard"
+                                  placeholder="Add table index notations summary description data..."
+                                  value={el.tableLegend || ''}
+                                  InputProps={{
+                                    disableUnderline: true,
+                                    readOnly: true
+                                  }}
+                                  inputProps={{
+                                    style: {
+                                      fontSize: 11,
+                                      fontStyle: 'italic',
+                                      color: '#64748b',
+                                      marginTop: '4px'
+                                    }
+                                  }}
+                                />
+                              </Box>
+                            </Box>
+                          )}
+                        </Box>
+                      </Box>
+                    ))}
+                </Box>
+
+                {/* Section Level Actions Controls Footer bar */}
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+        {commentPopup && (
+          <Box
+            sx={{
+              position: 'absolute',
+
+              left: clickedPosition.x,
+
+              top: clickedPosition.y,
+
+              transform: 'translate(-15px,-15px)',
+
+              width: 340,
+
+              background: '#fff',
+
+              borderRadius: '12px',
+
+              boxShadow: '0 10px 35px rgba(0,0,0,.22)',
+
+              border: '1px solid #ddd',
+
+              zIndex: 99999,
+
+              overflow: 'hidden'
+            }}
+          >
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{
+                p: 1.5,
+                borderBottom: '1px solid #eee'
+              }}
+            >
+              <Typography fontWeight={700}>Add Comment</Typography>
+
+              <IconButton
+                size="small"
+                onClick={() => {
+                  setCommentPopup(false);
+
+                  setCommentImage(null);
+
+                  setCommentText('');
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            <Box sx={{ p: 2 }}>
+              <TextField
+                multiline
+                rows={4}
+                fullWidth
+                placeholder="Leave comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+              />
+
+              <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                <Button component="label" startIcon={<AttachFileIcon />}>
+                  Image
+                  <input
+                    hidden
+                    type="file"
+                    onChange={(e) => {
+                      setCommentImage(e.target.files[0]);
+                    }}
+                  />
+                </Button>
+
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    if (!commentText.trim()) return;
+
+                    setComments((prev) => [
+                      ...prev,
+
+                      {
+                        id: Date.now(),
+
+                        x: clickedPosition.x,
+
+                        y: clickedPosition.y,
+
+                        text: commentText,
+
+                        image: commentImage
+                      }
+                    ]);
+
+                    setCommentPopup(false);
+
+                    setCommentText('');
+
+                    setCommentImage(null);
+                  }}
+                >
+                  ADD COMMENT
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        )}
+        {comments.map((item, index) => (
+          <Tooltip
+            key={item.id}
+            arrow
+            placement="top"
+            title={
+              <Box>
+                <Typography fontSize={13}>{item.text}</Typography>
+
+                {item.image && (
+                  <img
+                    src={URL.createObjectURL(item.image)}
+                    style={{
+                      width: 180,
+                      marginTop: 10,
+                      borderRadius: 6
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          >
+            <Box
+              onMouseEnter={() => setHoverComment(item.id)}
+              onMouseLeave={() => setHoverComment(null)}
+              sx={{
+                position: 'absolute',
+
+                left: item.x,
+
+                top: item.y,
+
+                transform: 'translate(-50%,-50%)',
+
+                width: 34,
+
+                height: 34,
+
+                borderRadius: '50%',
+
+                bgcolor: hoverComment === item.id ? '#3730a3' : '#4f46e5',
+
+                color: '#fff',
+
+                display: 'flex',
+
+                alignItems: 'center',
+
+                justifyContent: 'center',
+
+                fontWeight: 700,
+
+                cursor: 'pointer',
+
+                boxShadow: '0 6px 18px rgba(0,0,0,.3)',
+
+                zIndex: 9999,
+
+                transition: '.2s'
+              }}
+            >
+              {index + 1}
+            </Box>
+          </Tooltip>
+        ))}
+        {/* ================= 3. RIGHT SIDEBAR WORKSPACE TOOLBOX PANEL ================= */}
+      </Box>
+    </Box>
+  );
+}

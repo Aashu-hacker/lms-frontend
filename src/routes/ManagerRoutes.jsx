@@ -9,6 +9,7 @@ import ProtectedRoute from './ProtectedRoute';
 const ProjectsPage = Loadable(lazy(() => import('views/admin/projects/ProjectsListPage')));
 const AddProjectPage = Loadable(lazy(() => import('views/admin/projects/AddProject')));
 const ReportsPage = Loadable(lazy(() => import('views/admin/reports/ReportsPage')));
+const AddCommentReport = Loadable(lazy(() => import('views/admin/reports/AddCommentReport')));
   
 const ManagerRoutes = {
   path: '/manager',
@@ -34,6 +35,15 @@ const ManagerRoutes = {
       element: (
         <ProtectedRoute roles={['manager']}>
           <AddProjectPage />
+        </ProtectedRoute>
+      )
+    },
+
+    {
+      path: 'reports/add-comment/:id/versions/:versionId',
+      element: (
+        <ProtectedRoute roles={['manager']}>
+          <AddCommentReport />
         </ProtectedRoute>
       )
     },

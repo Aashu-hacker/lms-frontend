@@ -141,14 +141,14 @@ const pages = {
         //   url: '#',
         //   icon: icons.IconSend
         // },
-        // {
-        //   id: 'manager-comments',
-        //   title: 'Manager Comments',
-        //   type: 'item',
-        //   // url: '/analyst/comments',
-        //   url: '#',
-        //   icon: icons.IconMessageCircle
-        // },
+        {
+          id: 'rejected-reports',
+          title: 'Rejected Reports',
+          type: 'item',
+          url: '/analyst/rejected-reports',
+          // url: '#',
+          icon: icons.IconMessageCircle
+        },
         // {
         //   id: 'internal-version',
         //   title: 'Internal Versions',
@@ -182,38 +182,38 @@ const pages = {
           url: '/manager/submitted-reports',
           icon: icons.IconEye
         },
-        {
-          id: 'add-comments',
-          title: 'Add Comments',
-          type: 'item',
-          // url: '/manager/comments',
-          url: '#',
-          icon: icons.IconMessageCircle
-        },
-        {
-          id: 'approve-reports',
-          title: 'Approve / Send Back',
-          type: 'item',
-          // url: '/manager/approve-reports',
-          url: '#',
-          icon: icons.IconCheck
-        },
-        {
-          id: 'forward-client',
-          title: 'Forward to Client',
-          type: 'item',
-          // url: '/manager/forward-client',
-          url: '#',
-          icon: icons.IconSend
-        },
-        {
-          id: 'external-version',
-          title: 'External Versions',
-          type: 'item',
-          // url: '/manager/external-versions',
-          url: '#',
-          icon: icons.IconGitBranch
-        }
+        // {
+        //   id: 'reports/add-comment',
+        //   title: 'Add Comments',
+        //   type: 'item',
+        //   url: '/manager/comments',
+        //   // url: '#',
+        //   icon: icons.IconMessageCircle
+        // // },
+        // {
+        //   id: 'approve-reports',
+        //   title: 'Approve / Send Back',
+        //   type: 'item',
+        //   // url: '/manager/approve-reports',
+        //   url: '#',
+        //   icon: icons.IconCheck
+        // },
+        // {
+        //   id: 'forward-client',
+        //   title: 'Forward to Client',
+        //   type: 'item',
+        //   // url: '/manager/forward-client',
+        //   url: '#',
+        //   icon: icons.IconSend
+        // },
+        // {
+        //   id: 'external-version',
+        //   title: 'External Versions',
+        //   type: 'item',
+        //   // url: '/manager/external-versions',
+        //   url: '#',
+        //   icon: icons.IconGitBranch
+        // }
       ]
     }
   ]
