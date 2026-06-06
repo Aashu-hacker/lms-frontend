@@ -25,7 +25,11 @@ import {
   ListItemIcon,
   ListItemText,
   ToggleButtonGroup,
-  ToggleButton
+  ToggleButton,
+  Drawer,
+  Fab,
+  Avatar,
+  Chip
 } from '@mui/material';
 import {
   Save,
@@ -54,6 +58,7 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 
+import CloseIcon from '@mui/icons-material/Close';
 
 import REACT_APP_BASE_URL from 'utils/api';
 
@@ -109,6 +114,16 @@ export default function ReportWorkspaceStudio() {
   const [selectedSectionIndex, setSelectedSectionIndex] = useState(null);
   const [selectedElementId, setSelectedElementId] = useState(null);
 
+  const [activityOpen, setActivityOpen] = useState(false);
+
+  const [comments, setComments] = useState([]);
+  const [hoverComment, setHoverComment] = useState(null);
+  const [commentText, setCommentText] = useState('');
+
+  const [clickedPosition, setClickedPosition] = useState({
+    x: 0,
+    y: 0
+  });
   const authHeaders = {
     Authorization: `Bearer ${localStorage.getItem('token')}`,
     'Content-Type': 'application/json'
@@ -190,7 +205,40 @@ export default function ReportWorkspaceStudio() {
       .catch((err) => {
         console.error('Workspace initial data download exception:', err);
       });
+
+    loadComments();
   }, [id, versionId]);
+
+  const loadComments = async () => {
+    try {
+      const response = await axios.get(`${REACT_APP_BASE_URL}/reports/get-report-comments/${id}/${versionId}`, {
+        headers: authHeaders
+      });
+
+      setComments(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const updateCommentStatus = async (commentId, status) => {
+    try {
+      const res = await axios.put(
+        `${REACT_APP_BASE_URL}/reports/report-comments/${commentId}`,
+        {
+          user_id: user._id,
+          status
+        },
+        {
+          headers: authHeaders
+        }
+      );
+
+      setComments((prev) => prev.map((item) => (item._id === commentId ? res.data : item)));
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   // --- Save Modifications to Server (Handles Initial / Existing Updates seamlessly) ---
   const handleSaveDraft = async () => {
@@ -587,12 +635,13 @@ export default function ReportWorkspaceStudio() {
   const currentSection = selectedSectionIndex !== null ? sections[selectedSectionIndex] : null;
 
   return (
-    <Box sx={{  display: 'flex', flexDirection: 'column', bgcolor: '#f4f6f9', overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', bgcolor: '#f4f6f9', overflow: 'hidden' }}>
       {/* ================= 1. TOP GLOBAL APP HEADER BAR NAVIGATION ================= */}
       <AppBar
-        position="sticky" // Changed to sticky so the toolbar stays fixed at the top while scrolling down long reports
+        position="relative" // Changed to sticky so the toolbar stays fixed at the top while scrolling down long reports
         color="default"
-        sx={{ borderBottom: '1px solid #dcdcdc', bgcolor: '#ffffff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        // zIndex: (theme) => theme.zIndex.drawer + 1
+        sx={{ borderBottom: '1px solid #dcdcdc', bgcolor: '#ffffff' }}
         elevation={0}
       >
         <Toolbar variant="dense" sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -637,7 +686,229 @@ export default function ReportWorkspaceStudio() {
           </Box>
         </Toolbar>
       </AppBar>
+      <Drawer
+        anchor="right"
+        open={activityOpen}
+        onClose={() => setActivityOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 420,
+            background: '#f8fafc'
+          }
+        }}
+      >
+        <Box
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          {/* HEADER */}
 
+          <Box
+            sx={{
+              p: 2,
+              background: '#fff',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <Box>
+              <Typography fontWeight={700} fontSize={18}>
+                Comments Activity
+              </Typography>
+
+              <Typography fontSize={12} color="text.secondary">
+                {comments.length} Comments Added
+              </Typography>
+            </Box>
+
+            <IconButton onClick={() => setActivityOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {/* TIMELINE */}
+
+          <Box
+            sx={{
+              flex: 1,
+              overflowY: 'auto',
+              p: 3
+            }}
+          >
+            {comments.length === 0 && (
+              <Box textAlign="center" mt={15}>
+                <Typography color="text.secondary">No comments added</Typography>
+              </Box>
+            )}
+
+            {comments.map((item, index) => (
+              <Box
+                key={item._id}
+                sx={{
+                  display: 'flex',
+
+                  alignItems: 'flex-start',
+
+                  position: 'relative',
+
+                  pb: 4
+                }}
+              >
+                {/* timeline line */}
+
+                {index !== comments.length - 1 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+
+                      left: 19,
+
+                      top: 40,
+
+                      width: 2,
+
+                      height: '100%',
+
+                      bgcolor: '#e2e8f0'
+                    }}
+                  />
+                )}
+
+                {/* Number Circle */}
+
+                <Box
+                  onClick={() => {
+                    document
+                      .getElementById(`comment-marker-${item._id}`)
+
+                      ?.scrollIntoView({
+                        behavior: 'smooth',
+
+                        block: 'center'
+                      });
+                  }}
+                  sx={{
+                    width: 40,
+
+                    height: 40,
+
+                    borderRadius: '50%',
+
+                    bgcolor: item.status === 'resolved' ? '#10b981' : '#4f46e5',
+
+                    display: 'flex',
+
+                    justifyContent: 'center',
+
+                    alignItems: 'center',
+
+                    color: '#fff',
+
+                    fontWeight: 700,
+
+                    cursor: 'pointer',
+
+                    flexShrink: 0
+                  }}
+                >
+                  {index + 1}
+                </Box>
+
+                <Card
+                  sx={{
+                    ml: 2,
+
+                    flex: 1,
+
+                    borderRadius: 3,
+
+                    boxShadow: '0 2px 10px rgba(0,0,0,.06)',
+
+                    border: '1px solid #e5e7eb'
+                  }}
+                >
+                  <CardContent>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Box>
+                        <Typography fontWeight={700} fontSize={13}>
+                          Comment #{index + 1}
+                        </Typography>
+
+                        <Typography fontSize={11} color="text.secondary">
+                          Added By:
+                          {item.createdBy?.name || 'Unknown'}
+                        </Typography>
+                      </Box>
+
+                      <Chip
+                        size="small"
+                        label={item.status === 'resolved' ? 'Resolved' : 'Open'}
+                        color={item.status === 'resolved' ? 'success' : 'warning'}
+                      />
+                    </Box>
+
+                    <Typography fontSize={13} lineHeight={1.7} mb={1}>
+                      {item.text}
+                    </Typography>
+
+                    {item.image && (
+                      <Box mt={1}>
+                        <img
+                          src={item.image}
+                          style={{
+                            width: '100%',
+
+                            maxHeight: 220,
+
+                            objectFit: 'cover',
+
+                            borderRadius: 10,
+
+                            border: '1px solid #eee'
+                          }}
+                        />
+                      </Box>
+                    )}
+
+                    <Box display="flex" justifyContent="space-between" mt={2}>
+                      <Typography fontSize={11} color="text.secondary">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </Typography>
+
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color={item.status === 'resolved' ? 'success' : 'primary'}
+                        disabled={user?.role === 'analyst' && item.status === 'resolved'}
+                        onClick={() => {
+                          // Analyst can only resolve, not reopen
+
+                          if (user?.role === 'analyst' && item.status === 'resolved') {
+                            return;
+                          }
+
+                          updateCommentStatus(
+                            item._id,
+
+                            item.status === 'resolved' ? 'open' : 'resolved'
+                          );
+                        }}
+                      >
+                        {item.status === 'resolved' ? (user?.role === 'analyst' ? 'RESOLVED' : 'REOPEN') : 'RESOLVE'}
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Drawer>
       {/* Main Studio Split Grid Frame */}
       <Box sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
         {/* ================= 2. CENTRAL BUILDER WORKSPACE REPORT AREA (Left/Center Canvas) ================= */}
@@ -923,7 +1194,7 @@ export default function ReportWorkspaceStudio() {
                                     alignItems: 'center'
                                   }}
                                 >
-                                         <Select
+                                  <Select
                                     size="small"
                                     value={el.fontFamily || 'Arial'}
                                     sx={{ height: 28, minWidth: 120 }}
@@ -1265,7 +1536,7 @@ export default function ReportWorkspaceStudio() {
                                 alignItems={el.imageAlignment === 'Center' ? 'center' : 'flex-start'}
                                 sx={{ flexGrow: 1, overflow: 'hidden', p: 0.5 }}
                               >
-                                 <img
+                                <img
                                   src={el.imageUrl || 'https://via.placeholder.com/400x200?text=Missing+Image+Asset+Node'}
                                   alt=""
                                   style={{ width: '100%', maxWidth: '500px', height: 'auto', objectFit: 'contain' }}
@@ -1294,7 +1565,7 @@ export default function ReportWorkspaceStudio() {
                                       color: '#475569'
                                     }
                                   }}
-                                 sx={{ mt: 1 }}
+                                  sx={{ mt: 1 }}
                                 />
                               </Box>
                             </Box>
@@ -1559,6 +1830,92 @@ export default function ReportWorkspaceStudio() {
             </IconButton>
           </Tooltip>
         </Box>
+        {comments.map((item, index) => (
+          <Tooltip
+            key={item._id}
+            arrow
+            placement="top"
+            title={
+              <Box>
+                <Typography fontSize={13}>{item.text}</Typography>
+                <Typography fontSize={11} color="gray">
+                  Added By:
+                  {item.createdBy?.name}
+                </Typography>
+                {item.image && (
+                  <img
+                    src={item.image}
+                    style={{
+                      width: 180,
+                      marginTop: 10,
+                      borderRadius: 6
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          >
+            <Box
+              id={`comment-marker-${item._id}`}
+              sx={{
+                position: 'absolute',
+
+                left: item.x,
+
+                top: item.y,
+
+                transform: 'translate(-50%,-50%)',
+
+                width: 36,
+
+                height: 36,
+
+                borderRadius: '50%',
+
+                bgcolor:
+                  item.status === 'resolved'
+                    ? '#10b981' // Green
+                    : item.status === 'in-review'
+                      ? '#f59e0b' // Orange
+                      : item.status === 'rejected'
+                        ? '#ef4444' // Red
+                        : '#4f46e5', // Default Open Blue
+
+                color: '#fff',
+
+                display: 'flex',
+
+                alignItems: 'center',
+
+                justifyContent: 'center',
+
+                fontWeight: 700,
+
+                cursor: 'pointer',
+
+                border: '2px solid white',
+
+                boxShadow:
+                  item.status === 'resolved'
+                    ? '0 6px 16px rgba(16,185,129,.35)'
+                    : item.status === 'rejected'
+                      ? '0 6px 16px rgba(239,68,68,.35)'
+                      : '0 6px 16px rgba(79,70,229,.30)',
+
+                transition: '.25s ease',
+
+                '&:hover': {
+                  transform: 'translate(-50%,-50%) scale(1.12)'
+                },
+
+                zIndex: 9999
+              }}
+              onClick={() => setActivityOpen(true)}
+            >
+              {index + 1}
+            </Box>
+          </Tooltip>
+        ))}
       </Box>
     </Box>
   );

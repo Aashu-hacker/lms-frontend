@@ -62,6 +62,7 @@ import AddCommentIcon from '@mui/icons-material/AddComment';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import ReplyIcon from '@mui/icons-material/Reply';
 
 import REACT_APP_BASE_URL from 'utils/api';
 
@@ -231,6 +232,90 @@ export default function ReportWorkspaceStudio() {
     }
   };
 
+  const handleSendBackToAnalyst = async () => {
+    const result = await Swal.fire({
+      title: 'Send report back?',
+      text: 'This report will be sent back to analyst for modifications.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Send Back',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#f59e0b',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      Swal.fire({
+        title: 'Sending...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      const res = await axios.put(
+        `${REACT_APP_BASE_URL}/reports/${id}/versions/${versionId}/send-back`,
+        { user },
+        { headers: authHeaders }
+      );
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Sent Back',
+        text: res.data.message,
+        confirmButtonColor: '#10b981'
+      }).then(() => {
+        navigate(-1);
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed',
+        text: err.response?.data?.message || 'Something went wrong'
+      });
+    }
+  };
+
+  const handlePublishReport = async () => {
+    const result = await Swal.fire({
+      title: 'Publish Report?',
+      text: 'This report will become visible to client users.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Publish',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#16a34a',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      Swal.fire({
+        title: 'Publishing...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      const res = await axios.put(`${REACT_APP_BASE_URL}/reports/${id}/versions/${versionId}/publish`, { user }, { headers: authHeaders });
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Published Successfully',
+        text: res.data.message,
+        confirmButtonColor: '#16a34a'
+      }).then(() => {
+        navigate(-1);
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Publish Failed',
+        text: err.response?.data?.message || 'Something went wrong'
+      });
+    }
+  };
+
   // Get active configurations references
   const currentElement =
     selectedSectionIndex !== null && selectedElementId !== null
@@ -261,7 +346,17 @@ export default function ReportWorkspaceStudio() {
         sx={{ borderBottom: '1px solid #dcdcdc', bgcolor: '#ffffff' }}
         elevation={0}
       >
-        <Toolbar variant="dense" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Toolbar
+          variant="dense"
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #e5e7eb',
+            bgcolor: '#fff'
+          }}
+        >
+          {/* LEFT */}
+
           <Box display="flex" alignItems="center" gap={2}>
             <Box
               sx={{
@@ -278,23 +373,59 @@ export default function ReportWorkspaceStudio() {
             >
               B
             </Box>
+
             <TextField
               variant="standard"
-              size="medium"
-              placeholder="Untitled Report"
               value={reportName}
-              onChange={(e) => setReportName(e.target.value)}
-              inputProps={{ style: { fontWeight: 'bold', fontSize: 18, width: 850 }, readOnly: true }}
+              inputProps={{
+                readOnly: true,
+                style: {
+                  fontWeight: 700,
+                  fontSize: 18,
+                  width: 650
+                }
+              }}
             />
           </Box>
+
+          {/* RIGHT */}
+
           <Box display="flex" gap={1}>
             <Button size="small" variant="outlined" startIcon={<Visibility />}>
               Preview
             </Button>
-            <Button size="small" variant="contained" color="success" startIcon={<Publish />}>
-              Publish
+
+            {/* SEND BACK */}
+
+            <Button
+              size="small"
+              color="warning"
+              variant="contained"
+              disabled={comments.length === 0}
+              startIcon={<ReplyIcon />}
+              onClick={() => {
+                handleSendBackToAnalyst();
+              }}
+            >
+              Send Back
             </Button>
-            <Button size="small" variant="text" color="error" startIcon={<ExitToApp />} onClick={() => navigate(-1)}>
+
+            {/* PUBLISH */}
+
+            <Button
+              size="small"
+              color="success"
+              variant="contained"
+              disabled={comments.some((x) => x.status !== 'resolved')}
+              startIcon={<Publish />}
+              onClick={() => {
+                handlePublishReport();
+              }}
+            >
+              Publish To Client
+            </Button>
+
+            <Button size="small" color="error" variant="text" startIcon={<ExitToApp />} onClick={() => navigate(-1)}>
               Exit
             </Button>
           </Box>
