@@ -587,7 +587,7 @@ export default function ReportWorkspaceStudio() {
   const currentSection = selectedSectionIndex !== null ? sections[selectedSectionIndex] : null;
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f4f6f9', overflow: 'hidden' }}>
+    <Box sx={{  display: 'flex', flexDirection: 'column', bgcolor: '#f4f6f9', overflow: 'hidden' }}>
       {/* ================= 1. TOP GLOBAL APP HEADER BAR NAVIGATION ================= */}
       <AppBar
         position="sticky" // Changed to sticky so the toolbar stays fixed at the top while scrolling down long reports
@@ -618,7 +618,7 @@ export default function ReportWorkspaceStudio() {
               placeholder="Untitled Report"
               value={reportName}
               onChange={(e) => setReportName(e.target.value)}
-              inputProps={{ style: { fontWeight: 'bold', fontSize: 18, width: 850 } }}
+              inputProps={{ style: { fontWeight: 'bold', fontSize: 18, width: 650 } }}
             />
           </Box>
           <Box display="flex" gap={1}>
