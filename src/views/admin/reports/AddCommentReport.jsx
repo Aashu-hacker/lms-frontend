@@ -125,6 +125,8 @@ export default function ReportWorkspaceStudio() {
 
   const [comments, setComments] = useState([]);
 
+  const [isPublished, setIsPublished] = useState(false);
+
   const [commentPopup, setCommentPopup] = useState(false);
 
   const [clickedPosition, setClickedPosition] = useState({
@@ -305,7 +307,8 @@ export default function ReportWorkspaceStudio() {
         text: res.data.message,
         confirmButtonColor: '#16a34a'
       }).then(() => {
-        navigate(-1);
+        setIsPublished(true); // disable buttons
+        // navigate(-1);
       });
     } catch (err) {
       Swal.fire({
@@ -391,9 +394,9 @@ export default function ReportWorkspaceStudio() {
           {/* RIGHT */}
 
           <Box display="flex" gap={1}>
-            <Button size="small" variant="outlined" startIcon={<Visibility />}>
+            {/* <Button size="small" variant="outlined" startIcon={<Visibility />}>
               Preview
-            </Button>
+            </Button> */}
 
             {/* SEND BACK */}
 
@@ -401,7 +404,7 @@ export default function ReportWorkspaceStudio() {
               size="small"
               color="warning"
               variant="contained"
-              disabled={comments.length === 0}
+              disabled={comments.length === 0 || isPublished}
               startIcon={<ReplyIcon />}
               onClick={() => {
                 handleSendBackToAnalyst();
@@ -410,13 +413,11 @@ export default function ReportWorkspaceStudio() {
               Send Back
             </Button>
 
-            {/* PUBLISH */}
-
             <Button
               size="small"
               color="success"
               variant="contained"
-              disabled={comments.some((x) => x.status !== 'resolved')}
+              disabled={comments.some((x) => x.status !== 'resolved') || isPublished}
               startIcon={<Publish />}
               onClick={() => {
                 handlePublishReport();
@@ -496,11 +497,8 @@ export default function ReportWorkspaceStudio() {
                 key={item._id}
                 sx={{
                   display: 'flex',
-
                   alignItems: 'flex-start',
-
                   position: 'relative',
-
                   pb: 4
                 }}
               >
@@ -510,15 +508,10 @@ export default function ReportWorkspaceStudio() {
                   <Box
                     sx={{
                       position: 'absolute',
-
                       left: 19,
-
                       top: 40,
-
                       width: 2,
-
                       height: '100%',
-
                       bgcolor: '#e2e8f0'
                     }}
                   />
@@ -530,34 +523,22 @@ export default function ReportWorkspaceStudio() {
                   onClick={() => {
                     document
                       .getElementById(`comment-marker-${item._id}`)
-
                       ?.scrollIntoView({
                         behavior: 'smooth',
-
                         block: 'center'
                       });
                   }}
                   sx={{
                     width: 40,
-
                     height: 40,
-
                     borderRadius: '50%',
-
                     bgcolor: item.status === 'resolved' ? '#10b981' : '#4f46e5',
-
                     display: 'flex',
-
                     justifyContent: 'center',
-
                     alignItems: 'center',
-
                     color: '#fff',
-
                     fontWeight: 700,
-
                     cursor: 'pointer',
-
                     flexShrink: 0
                   }}
                 >
@@ -567,13 +548,9 @@ export default function ReportWorkspaceStudio() {
                 <Card
                   sx={{
                     ml: 2,
-
                     flex: 1,
-
                     borderRadius: 3,
-
                     boxShadow: '0 2px 10px rgba(0,0,0,.06)',
-
                     border: '1px solid #e5e7eb'
                   }}
                 >
