@@ -63,6 +63,9 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ReplyIcon from '@mui/icons-material/Reply';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import NotesIcon from '@mui/icons-material/Notes';
+import SendIcon from '@mui/icons-material/Send';
 
 import REACT_APP_BASE_URL from 'utils/api';
 
@@ -321,6 +324,73 @@ export default function ReportWorkspaceStudio() {
     }
   };
 
+  const updateManagerNote = async (id, note) => {
+    const result = await Swal.fire({
+      title: 'Update Note?',
+      text: 'Do you want to save this manager note?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Update',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.put(`${REACT_APP_BASE_URL}/reports/report-comments/${id}/note`, {
+        managerNote: note
+      });
+
+      Swal.fire({
+        title: 'Updated!',
+        text: 'Manager note updated successfully.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      Swal.fire({
+        title: 'Failed!',
+        text: 'Failed to update note.',
+        icon: 'error'
+      });
+    }
+  };
+
+  const deleteComment = async (id) => {
+    const result = await Swal.fire({
+      title: 'Delete Comment?',
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.delete(`${REACT_APP_BASE_URL}/reports/report-comments/${id}`);
+
+      setComments((prev) => prev.filter((c) => c._id !== id));
+
+      Swal.fire({
+        title: 'Deleted!',
+        text: 'Comment deleted successfully.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch {
+      Swal.fire({
+        title: 'Failed!',
+        text: 'Failed to delete comment.',
+        icon: 'error'
+      });
+    }
+  };
+
   // Get active configurations references
   const currentElement =
     selectedSectionIndex !== null && selectedElementId !== null
@@ -434,196 +504,6 @@ export default function ReportWorkspaceStudio() {
           </Box>
         </Toolbar>
       </AppBar>
-      <Drawer
-        anchor="right"
-        open={activityOpen}
-        onClose={() => setActivityOpen(false)}
-        PaperProps={{
-          sx: {
-            width: 420,
-            background: '#f8fafc'
-          }
-        }}
-      >
-        <Box
-          sx={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          {/* HEADER */}
-
-          <Box
-            sx={{
-              p: 2,
-              background: '#fff',
-              borderBottom: '1px solid #e5e7eb',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <Box>
-              <Typography fontWeight={700} fontSize={18}>
-                Comments Activity
-              </Typography>
-
-              <Typography fontSize={12} color="text.secondary">
-                {comments.length} Comments Added
-              </Typography>
-            </Box>
-
-            <IconButton onClick={() => setActivityOpen(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
-          {/* TIMELINE */}
-
-          <Box
-            sx={{
-              flex: 1,
-              overflowY: 'auto',
-              p: 3
-            }}
-          >
-            {comments.length === 0 && (
-              <Box textAlign="center" mt={15}>
-                <Typography color="text.secondary">No comments added</Typography>
-              </Box>
-            )}
-
-            {comments.map((item, index) => (
-              <Box
-                key={item._id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  position: 'relative',
-                  pb: 4
-                }}
-              >
-                {/* timeline line */}
-
-                {index !== comments.length - 1 && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: 19,
-                      top: 40,
-                      width: 2,
-                      height: '100%',
-                      bgcolor: '#e2e8f0'
-                    }}
-                  />
-                )}
-
-                {/* Number Circle */}
-
-                <Box
-                  onClick={() => {
-                    document.getElementById(`comment-marker-${item._id}`)?.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'center'
-                    });
-                  }}
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    bgcolor: item.status === 'resolved' ? '#10b981' : '#4f46e5',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    color: '#fff',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    flexShrink: 0
-                  }}
-                >
-                  {index + 1}
-                </Box>
-
-                <Card
-                  sx={{
-                    ml: 2,
-                    flex: 1,
-                    borderRadius: 3,
-                    boxShadow: '0 2px 10px rgba(0,0,0,.06)',
-                    border: '1px solid #e5e7eb'
-                  }}
-                >
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                      <Box>
-                        <Typography fontWeight={700} fontSize={13}>
-                          Comment #{index + 1}
-                        </Typography>
-
-                        <Typography fontSize={11} color="text.secondary">
-                          Added By:
-                          {item.createdBy?.name || 'Unknown'}
-                        </Typography>
-                      </Box>
-
-                      <Chip
-                        size="small"
-                        label={item.status === 'resolved' ? 'Resolved' : 'Open'}
-                        color={item.status === 'resolved' ? 'success' : 'warning'}
-                      />
-                    </Box>
-
-                    <Typography fontSize={13} lineHeight={1.7} mb={1}>
-                      {item.text}
-                    </Typography>
-
-                    {item.image && (
-                      <Box mt={1}>
-                        <img
-                          src={item.image}
-                          style={{
-                            width: '100%',
-
-                            maxHeight: 220,
-
-                            objectFit: 'cover',
-
-                            borderRadius: 10,
-
-                            border: '1px solid #eee'
-                          }}
-                        />
-                      </Box>
-                    )}
-
-                    <Box display="flex" justifyContent="space-between" mt={2}>
-                      <Typography fontSize={11} color="text.secondary">
-                        {new Date(item.createdAt).toLocaleString()}
-                      </Typography>
-
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color={item.status === 'resolved' ? 'success' : 'primary'}
-                        onClick={() => {
-                          updateCommentStatus(
-                            item._id,
-
-                            item.status === 'resolved' ? 'open' : 'resolved'
-                          );
-                        }}
-                      >
-                        {item.status === 'resolved' ? 'REOPEN' : 'RESOLVE'}
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      </Drawer>
       <Box
         sx={{
           position: 'fixed',
@@ -636,7 +516,6 @@ export default function ReportWorkspaceStudio() {
         }}
       >
         {/* Activity Button */}
-
         <Fab
           color="secondary"
           onClick={() => setActivityOpen(true)}
@@ -646,9 +525,7 @@ export default function ReportWorkspaceStudio() {
         >
           <VisibilityIcon />
         </Fab>
-
         {/* Comment Button */}
-
         <Fab
           variant="extended"
           color={commentMode ? 'secondary' : 'primary'}
@@ -674,7 +551,7 @@ export default function ReportWorkspaceStudio() {
             position: 'relative',
             cursor: commentMode ? 'crosshair' : 'default',
             flexGrow: 1,
-            overflowY: 'auto',
+            overflowY: 'hidden',
             p: 4,
             display: 'flex',
             flexDirection: 'column',
@@ -688,7 +565,7 @@ export default function ReportWorkspaceStudio() {
             sx={{
               flexGrow: 1,
               overflowY: 'auto',
-              p: 4,
+              p: 2,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -1150,14 +1027,15 @@ export default function ReportWorkspaceStudio() {
             <Tooltip
               key={item._id}
               arrow
-              placement="top"
+              placement="left"
               title={
                 <Box>
                   <Typography fontSize={13}>{item.text}</Typography>
+
                   <Typography fontSize={11} color="gray">
-                    Added By:
-                    {item.createdBy?.name}
+                    Added By: {item.createdBy?.name}
                   </Typography>
+
                   {item.image && (
                     <img
                       src={item.image}
@@ -1172,58 +1050,37 @@ export default function ReportWorkspaceStudio() {
               }
             >
               <Box
-                id={`comment-marker-${item._id}`}
                 sx={{
                   position: 'absolute',
-
-                  left: item.x,
+                  right: activityOpen
+                    ? 380 // drawer width + spacing
+                    : 20,
 
                   top: item.y,
-
-                  transform: 'translate(-50%,-50%)',
-
                   width: 36,
-
                   height: 36,
-
                   borderRadius: '50%',
-
                   bgcolor:
                     item.status === 'resolved'
-                      ? '#10b981' // Green
+                      ? '#10b981'
                       : item.status === 'in-review'
-                        ? '#f59e0b' // Orange
+                        ? '#f59e0b'
                         : item.status === 'rejected'
-                          ? '#ef4444' // Red
-                          : '#4f46e5', // Default Open Blue
+                          ? '#ef4444'
+                          : '#4f46e5',
 
                   color: '#fff',
-
                   display: 'flex',
-
                   alignItems: 'center',
-
                   justifyContent: 'center',
-
                   fontWeight: 700,
-
                   cursor: 'pointer',
-
                   border: '2px solid white',
-
-                  boxShadow:
-                    item.status === 'resolved'
-                      ? '0 6px 16px rgba(16,185,129,.35)'
-                      : item.status === 'rejected'
-                        ? '0 6px 16px rgba(239,68,68,.35)'
-                        : '0 6px 16px rgba(79,70,229,.30)',
-
-                  transition: '.25s ease',
-
+                  transform: 'translateY(-50%)',
+                  transition: '.25s',
                   '&:hover': {
-                    transform: 'translate(-50%,-50%) scale(1.12)'
+                    transform: 'translateY(-50%) scale(1.12)'
                   },
-
                   zIndex: 9999
                 }}
                 onClick={() => setActivityOpen(true)}
@@ -1234,6 +1091,248 @@ export default function ReportWorkspaceStudio() {
           ))}
           {/* ================= 3. RIGHT SIDEBAR WORKSPACE TOOLBOX PANEL ================= */}
         </Box>
+        <Drawer
+          anchor="right"
+          open={activityOpen}
+          onClose={() => setActivityOpen(false)}
+          PaperProps={{
+            sx: {
+              width: 420,
+              background: '#f8fafc'
+            }
+          }}
+        >
+          <Box
+            sx={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {/* HEADER */}
+
+            <Box
+              sx={{
+                p: 2,
+                background: '#fff',
+                borderBottom: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <Box>
+                <Typography fontWeight={700} fontSize={18}>
+                  Comments Activity
+                </Typography>
+
+                <Typography fontSize={12} color="text.secondary">
+                  {comments.length} Comments Added
+                </Typography>
+              </Box>
+
+              <IconButton onClick={() => setActivityOpen(false)}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            {/* TIMELINE */}
+
+            <Box
+              sx={{
+                flex: 1,
+                overflowY: 'auto',
+                p: 3
+              }}
+            >
+              {comments.length === 0 && (
+                <Box textAlign="center" mt={15}>
+                  <Typography color="text.secondary">No comments added</Typography>
+                </Box>
+              )}
+
+              {comments.map((item, index) => (
+                <Box
+                  key={item._id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    position: 'relative',
+                    pb: 4
+                  }}
+                >
+                  {/* timeline line */}
+
+                  {index !== comments.length - 1 && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        left: 19,
+                        top: 40,
+                        width: 2,
+                        height: '100%',
+                        bgcolor: '#e2e8f0'
+                      }}
+                    />
+                  )}
+
+                  {/* Number Circle */}
+
+                  <Box
+                    onClick={() => {
+                      document.getElementById(`comment-marker-${item._id}`)?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                      });
+                    }}
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      bgcolor: item.status === 'resolved' ? '#10b981' : '#4f46e5',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      color: '#fff',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      flexShrink: 0
+                    }}
+                  >
+                    {index + 1}
+                  </Box>
+
+                  <Card
+                    sx={{
+                      ml: 2,
+                      flex: 1,
+                      borderRadius: 3,
+                      boxShadow: '0 2px 10px rgba(0,0,0,.06)',
+                      border: '1px solid #e5e7eb'
+                    }}
+                  >
+                    <CardContent>
+                      {/* HEADER */}
+
+                      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                        <Box>
+                          <Typography fontWeight={700} fontSize={13}>
+                            Comment #{index + 1}
+                          </Typography>
+
+                          <Typography fontSize={11} color="text.secondary">
+                            Added By: {item.createdBy?.name || 'Unknown'}
+                          </Typography>
+                        </Box>
+
+                        <Chip
+                          size="small"
+                          label={item.status === 'resolved' ? 'Resolved' : 'Open'}
+                          color={item.status === 'resolved' ? 'success' : 'warning'}
+                        />
+                      </Box>
+
+                      {/* COMMENT */}
+
+                      <Typography fontSize={13} lineHeight={1.7} mb={2}>
+                        {item.text}
+                      </Typography>
+
+                      {/* IMAGE */}
+
+                      {item.image && (
+                        <Box mb={2}>
+                          <img
+                            src={item.image}
+                            style={{
+                              width: '100%',
+                              maxHeight: 220,
+                              objectFit: 'cover',
+                              borderRadius: 10,
+                              border: '1px solid #eee'
+                            }}
+                          />
+                        </Box>
+                      )}
+
+                      {/* MANAGER NOTES */}
+
+                      <Box mt={2}>
+                        <Typography fontSize={12} fontWeight={700} mb={1}>
+                          Manager Notes / Client Change Request
+                        </Typography>
+
+                        <Box display="flex" gap={1} alignItems="flex-start">
+                          <TextField
+                            size="small"
+                            multiline
+                            rows={3}
+                            fullWidth
+                            placeholder="Add note if client requested modifications..."
+                            value={item.managerNote || ''}
+                            onChange={(e) =>
+                              setComments((prev) =>
+                                prev.map((c) =>
+                                  c._id === item._id
+                                    ? {
+                                        ...c,
+                                        managerNote: e.target.value
+                                      }
+                                    : c
+                                )
+                              )
+                            }
+                          />
+
+                          <IconButton
+                            color="primary"
+                            sx={{
+                              mt: 0.5,
+                              border: '1px solid #ddd'
+                            }}
+                            onClick={() => updateManagerNote(item._id, item.managerNote)}
+                          >
+                            <SendIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
+
+                      {/* FOOTER */}
+
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                        <Typography fontSize={11} color="text.secondary">
+                          {new Date(item.createdAt).toLocaleString()}
+                        </Typography>
+
+                        <Box display="flex" gap={1}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color={item.status === 'resolved' ? 'success' : 'primary'}
+                            onClick={() => {
+                              updateCommentStatus(item._id, item.status === 'resolved' ? 'open' : 'resolved');
+                            }}
+                          >
+                            {item.status === 'resolved' ? 'REOPEN' : 'RESOLVE'}
+                          </Button>
+
+                          <IconButton
+                            color="error"
+                            onClick={() => {
+                              deleteComment(item._id);
+                            }}
+                          >
+                            <DeleteOutlineIcon />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        </Drawer>
       </Box>
     </Box>
   );
