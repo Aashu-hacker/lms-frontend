@@ -163,7 +163,7 @@ export default function ReportWorkspaceStudio() {
       })
 
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         if (!res.data) return;
         if (res.data.sections) {
           const normalizedSections = res.data.sections.map((section) => ({
@@ -208,6 +208,8 @@ export default function ReportWorkspaceStudio() {
       const response = await axios.get(`${REACT_APP_BASE_URL}/reports/get-report-comments/${id}/${versionId}`, {
         headers: authHeaders
       });
+
+      console.log(response);
 
       setComments(response.data);
     } catch (err) {
@@ -521,12 +523,10 @@ export default function ReportWorkspaceStudio() {
 
                 <Box
                   onClick={() => {
-                    document
-                      .getElementById(`comment-marker-${item._id}`)
-                      ?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                      });
+                    document.getElementById(`comment-marker-${item._id}`)?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'center'
+                    });
                   }}
                   sx={{
                     width: 40,
@@ -1047,9 +1047,9 @@ export default function ReportWorkspaceStudio() {
             <Box
               sx={{
                 position: 'absolute',
-                left: clickedPosition.x,
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
                 top: clickedPosition.y,
-                transform: 'translate(-15px,-15px)',
                 width: 340,
                 background: '#fff',
                 borderRadius: '12px',
@@ -1107,20 +1107,29 @@ export default function ReportWorkspaceStudio() {
                     variant="contained"
                     onClick={async () => {
                       if (!commentText.trim()) return;
+
                       try {
-                        const payload = {
-                          user_id: user._id,
-                          projectId: id,
-                          versionId: versionId,
-                          x: clickedPosition.x,
-                          y: clickedPosition.y,
-                          text: commentText,
-                          image: commentImage,
-                          createdBy: user?._id
-                        };
-                        const response = await axios.post(`${REACT_APP_BASE_URL}/reports/report-comments`, payload, {
-                          headers: authHeaders
+                        const formData = new FormData();
+
+                        formData.append('user_id', user._id);
+                        formData.append('projectId', id);
+                        formData.append('versionId', versionId);
+                        formData.append('x', clickedPosition.x);
+                        formData.append('y', clickedPosition.y);
+                        formData.append('text', commentText);
+                        formData.append('createdBy', user?._id);
+
+                        if (commentImage) {
+                          formData.append('image', commentImage);
+                        }
+
+                        const response = await axios.post(`${REACT_APP_BASE_URL}/reports/report-comments`, formData, {
+                          headers: {
+                            ...authHeaders,
+                            'Content-Type': 'multipart/form-data'
+                          }
                         });
+
                         setComments((prev) => [...prev, response.data]);
                         setCommentPopup(false);
                         setCommentText('');
