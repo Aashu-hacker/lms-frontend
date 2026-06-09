@@ -759,7 +759,7 @@ export default function ProjectsListPage() {
       field: 'versions',
       headerName: 'Versions',
       flex: 1.2,
-      minWidth: 100,
+      minWidth: 120,
       sortable: false,
       renderCell: (params) => {
         const versions = params.row.versions || [];
@@ -793,6 +793,23 @@ export default function ProjectsListPage() {
               </>
             ) : null}
 
+            
+          </Stack>
+        );
+      }
+    },
+    // ==============================|| ACTION COLUMN ||============================== //
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      sortable: false,
+      minWidth: 120,
+      renderCell: (params) => {
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        return (
+          <Stack direction="row" sx={{ pt: 1, pb: 2 }}>
+            {/* View */}
             {/* View Button */}
             <Tooltip title="View All Versions">
               <IconButton
@@ -803,35 +820,20 @@ export default function ProjectsListPage() {
                   navigate(`/admin/projects/${params.row._id}/versions`);
                 }}
               >
-                <VisibilityIcon fontSize="small" />
+                <DescriptionIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-          </Stack>
-        );
-      }
-    },
-    // ==============================|| ACTION COLUMN ||============================== //
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      sortable: false,
-      minWidth: 180,
-      renderCell: (params) => {
-        const user = JSON.parse(localStorage.getItem('user'));
 
-        return (
-          <Stack direction="row" sx={{ pt: 1, pb: 2 }}>
-            {/* View */}
             <Tooltip title="View">
               <IconButton color="primary" onClick={() => handleView(params.row)}>
-                <VisibilityIcon />
+                <VisibilityIcon fontSize="small"/>
               </IconButton>
             </Tooltip>
 
             {/* Edit */}
             <Tooltip title="Edit">
               <IconButton color="secondary" onClick={() => handleOpenEdit(params.row)}>
-                <EditIcon />
+                <EditIcon fontSize="small"/>
               </IconButton>
             </Tooltip>
 

@@ -9,7 +9,7 @@ import {
   IconSend,
   IconEye,
   IconCheck,
-  IconGitBranch,
+  IconGitBranch
 } from '@tabler/icons-react';
 
 // constant
@@ -23,7 +23,7 @@ const icons = {
   IconSend,
   IconEye,
   IconCheck,
-  IconGitBranch,
+  IconGitBranch
 };
 
 // ✅ Get logged-in user safely
@@ -80,7 +80,7 @@ const pages = {
           type: 'item',
           url: '/admin/reports',
           icon: icons.IconReport
-        },
+        }
       ]
     },
 
@@ -93,10 +93,10 @@ const pages = {
       roles: ['client'],
       children: [
         {
-          id: 'client-reports',
+          id: 'client-report',
           title: 'View Final Reports',
           type: 'item',
-          url: '/client/reports',
+          url: '/client/client-report',
           icon: icons.IconEye
         }
       ]
@@ -148,7 +148,7 @@ const pages = {
           url: '/analyst/rejected-reports',
           // url: '#',
           icon: icons.IconMessageCircle
-        },
+        }
         // {
         //   id: 'internal-version',
         //   title: 'Internal Versions',
@@ -181,7 +181,7 @@ const pages = {
           type: 'item',
           url: '/manager/submitted-reports',
           icon: icons.IconEye
-        },
+        }
         // {
         //   id: 'reports/add-comment',
         //   title: 'Add Comments',
@@ -220,8 +220,6 @@ const pages = {
 };
 
 // ================= FILTER ROLE BASED MENU =================
-pages.children = pages.children.filter(
-  (menu) => !menu.roles || menu.roles.includes(role)
-);
+pages.children = pages.children.filter((menu) => !menu.roles || menu.roles.includes(role));
 
 export default pages;
