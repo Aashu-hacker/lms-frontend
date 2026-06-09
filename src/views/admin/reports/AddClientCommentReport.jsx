@@ -203,7 +203,17 @@ export default function ReportWorkspaceStudio() {
       .catch((err) => {
         console.error('Workspace initial data download exception:', err);
       });
+  }, [id, versionId]);
+
+  // Load comments initially + auto refresh
+  useEffect(() => {
     loadComments();
+
+    const interval = setInterval(() => {
+      loadComments();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [id, versionId]);
 
   const loadComments = async () => {
@@ -212,9 +222,12 @@ export default function ReportWorkspaceStudio() {
         headers: authHeaders
       });
 
-      console.log(response);
+      setComments((prev) => {
+        const oldData = JSON.stringify(prev);
+        const newData = JSON.stringify(response.data);
 
-      setComments(response.data);
+        return oldData !== newData ? response.data : prev;
+      });
     } catch (err) {
       console.log(err);
     }
@@ -1015,7 +1028,7 @@ export default function ReportWorkspaceStudio() {
                           }
                         });
 
-                        setComments((prev) => [...prev, response.data]);
+                        await loadComments();
                         setCommentPopup(false);
                         setCommentText('');
                         setCommentImage(null);
