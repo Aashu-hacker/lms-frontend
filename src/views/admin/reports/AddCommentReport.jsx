@@ -325,16 +325,16 @@ export default function ReportWorkspaceStudio() {
   };
 
   const updateManagerNote = async (id, note) => {
-    const result = await Swal.fire({
-      title: 'Update Note?',
-      text: 'Do you want to save this manager note?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Update',
-      cancelButtonText: 'Cancel'
-    });
+    // const result = await Swal.fire({
+    //   title: 'Update Note?',
+    //   text: 'Do you want to save this manager note?',
+    //   icon: 'question',
+    //   showCancelButton: true,
+    //   confirmButtonText: 'Yes, Update',
+    //   cancelButtonText: 'Cancel'
+    // });
 
-    if (!result.isConfirmed) return;
+    // if (!result.isConfirmed) return;
 
     try {
       await axios.put(`${REACT_APP_BASE_URL}/reports/report-comments/${id}/note`, {
