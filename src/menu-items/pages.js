@@ -141,14 +141,14 @@ const pages = {
         //   url: '#',
         //   icon: icons.IconSend
         // },
-        {
-          id: 'rejected-reports',
-          title: 'Rejected Reports',
-          type: 'item',
-          url: '/analyst/rejected-reports',
-          // url: '#',
-          icon: icons.IconMessageCircle
-        }
+        // {
+        //   id: 'rejected-reports',
+        //   title: 'Rejected Reports',
+        //   type: 'item',
+        //   url: '/analyst/rejected-reports',
+        //   // url: '#',
+        //   icon: icons.IconMessageCircle
+        // }
         // {
         //   id: 'internal-version',
         //   title: 'Internal Versions',
