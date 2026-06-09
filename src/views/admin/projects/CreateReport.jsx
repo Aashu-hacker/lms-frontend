@@ -1834,7 +1834,7 @@ export default function ReportWorkspaceStudio() {
           <Tooltip
             key={item._id}
             arrow
-            placement="top"
+            placement="left"
             title={
               <Box>
                 <Typography fontSize={13}>{item.text}</Typography>
@@ -1859,19 +1859,12 @@ export default function ReportWorkspaceStudio() {
               id={`comment-marker-${item._id}`}
               sx={{
                 position: 'absolute',
-
-                left: item.x,
-
+                left: 285,
                 top: item.y,
-
                 transform: 'translate(-50%,-50%)',
-
                 width: 36,
-
                 height: 36,
-
                 borderRadius: '50%',
-
                 bgcolor:
                   item.status === 'resolved'
                     ? '#10b981' // Green

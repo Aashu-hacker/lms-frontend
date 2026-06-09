@@ -193,6 +193,7 @@ export default function AddProject() {
 
   const [managers, setManagers] = useState([]);
   const [analysts, setAnalysts] = useState([]);
+  const [clients, setClients] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -245,6 +246,9 @@ export default function AddProject() {
       // 🔹 Analysts only
       const analystUsers = users.filter((user) => user.role?.toLowerCase() === 'analyst');
 
+      // 🔹 Analysts only
+      const clientUsers = users.filter((user) => user.role?.toLowerCase() === 'client');
+
       // 🔹 Optional combined technical users (manager + analyst)
       const technicalUsers = users.filter((user) => user.role?.toLowerCase() !== 'admin' && user.role?.toLowerCase() !== 'client');
 
@@ -261,6 +265,14 @@ export default function AddProject() {
       setAnalysts([
         { value: 'add_new', label: '➕ Add New User' },
         ...analystUsers.map((user) => ({
+          value: user._id,
+          label: `${user.name} (${user.email})`
+        }))
+      ]);
+
+      setClients([
+        { value: 'add_new', label: '➕ Add New User' },
+        ...clientUsers.map((user) => ({
           value: user._id,
           label: `${user.name} (${user.email})`
         }))
@@ -341,6 +353,8 @@ export default function AddProject() {
 
         // ✅ Send analyst IDs
         analysts: (form.analysts || []).map((item) => item.value),
+
+        clients: (form.clients || []).map((item) => item.value),
 
         // ✅ Send NGS Applications
         ngsApplications: (form.ngsApplications || []).map((item) => item.value || item.label)
@@ -537,6 +551,23 @@ export default function AddProject() {
                   isLoading={loadingUsers}
                   onChange={(selected) => handleSelectChange('analysts', selected)}
                   placeholder="Select analysts or add new user"
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="h5" gutterBottom>
+                  <GroupsIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Client Users
+                </Typography>
+
+                <Select
+                  isMulti
+                  options={clients}
+                  value={form.clients}
+                  styles={selectStyles}
+                  isLoading={loadingUsers}
+                  onChange={(selected) => handleSelectChange('clients', selected)}
+                  placeholder="Select clients or add new user"
                 />
               </Grid>
             </Grid>

@@ -244,6 +244,8 @@ export default function ProjectsListPage() {
   const [search, setSearch] = useState('');
   const [managers, setManagers] = useState([]);
   const [analysts, setAnalysts] = useState([]);
+  const [clients, setClients] = useState([]);
+
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -277,6 +279,13 @@ export default function ProjectsListPage() {
       ? editProject.analysts.map((analyst) => ({
           value: analyst?._id || '',
           label: `${analyst?.name || 'Unknown'} (${analyst?.email || 'No Email'})`
+        }))
+      : [],
+
+    clients: Array.isArray(editProject?.clients)
+      ? editProject.clients.map((client) => ({
+          value: client?._id || '',
+          label: `${client?.name || 'Unknown'} (${client?.email || 'No Email'})`
         }))
       : [],
 
@@ -363,6 +372,9 @@ export default function ProjectsListPage() {
       // 🔹 Analysts only
       const analystUsers = users.filter((user) => user.role?.toLowerCase() === 'analyst');
 
+      // 🔹 Clients only
+      const clientUsers = users.filter((user) => user.role?.toLowerCase() === 'client');
+
       // 🔹 Optional combined technical users (manager + analyst)
       const technicalUsers = users.filter((user) => user.role?.toLowerCase() !== 'admin' && user.role?.toLowerCase() !== 'client');
 
@@ -379,6 +391,14 @@ export default function ProjectsListPage() {
       setAnalysts([
         { value: 'add_new', label: '➕ Add New User' },
         ...analystUsers.map((user) => ({
+          value: user._id,
+          label: `${user.name} (${user.email})`
+        }))
+      ]);
+
+      setClients([
+        { value: 'add_new', label: '➕ Add New User' },
+        ...clientUsers.map((user) => ({
           value: user._id,
           label: `${user.name} (${user.email})`
         }))
@@ -426,6 +446,11 @@ export default function ProjectsListPage() {
 
       // ✅ Normalize analysts
       analysts: (project.analysts || []).filter(Boolean).map((user) => ({
+        value: user._id || user.value,
+        label: `${user.name || user.label} (${user.email || ''})`
+      })),
+
+      clients: (project.clients || []).filter(Boolean).map((user) => ({
         value: user._id || user.value,
         label: `${user.name || user.label} (${user.email || ''})`
       })),
@@ -481,6 +506,7 @@ export default function ProjectsListPage() {
     // ✅ Manager should be single ID (not managers array)
     manager: form.managers && form.managers.length > 0 ? form.managers[0].value : null,
     analysts: (form.analysts || []).map((item) => item.value),
+    clients: (form.clients || []).map((item) => item.value),
 
     ngsApplications: (form.ngsApplications || []).map((item) => item.value || item.label)
   };
@@ -792,8 +818,6 @@ export default function ProjectsListPage() {
                 {versions.length > 2 && <Chip label={`+${versions.length - 2}`} size="small" sx={{ fontWeight: 600 }} />}
               </>
             ) : null}
-
-            
           </Stack>
         );
       }
@@ -826,14 +850,14 @@ export default function ProjectsListPage() {
 
             <Tooltip title="View">
               <IconButton color="primary" onClick={() => handleView(params.row)}>
-                <VisibilityIcon fontSize="small"/>
+                <VisibilityIcon fontSize="small" />
               </IconButton>
             </Tooltip>
 
             {/* Edit */}
             <Tooltip title="Edit">
               <IconButton color="secondary" onClick={() => handleOpenEdit(params.row)}>
-                <EditIcon fontSize="small"/>
+                <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
 
@@ -1050,6 +1074,24 @@ export default function ProjectsListPage() {
                         )}
                       </Stack>
                     </Grid>
+
+                    {/* Clients */}
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="h6" gutterBottom>
+                        <GroupsIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                        Client Users
+                      </Typography>
+
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        {viewProject.clients?.length ? (
+                          viewProject.clients.map((client) => (
+                            <Chip key={client._id} label={client.name || client.email} color="secondary" variant="outlined" />
+                          ))
+                        ) : (
+                          <Typography color="text.secondary">No client assigned</Typography>
+                        )}
+                      </Stack>
+                    </Grid>
                   </Grid>
                 </CardContent>
               </Card>
@@ -1240,7 +1282,7 @@ export default function ProjectsListPage() {
 
                 <Grid container spacing={4}>
                   {/* Project Owners / Managers */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={3}>
                     <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
                       <GroupsIcon sx={{ mr: 1 }} />
                       Project Owners / Managers
@@ -1260,7 +1302,7 @@ export default function ProjectsListPage() {
                   </Grid>
 
                   {/* Analysts */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={3}>
                     <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
                       <GroupsIcon sx={{ mr: 1 }} />
                       Assigned Analysts
@@ -1275,6 +1317,25 @@ export default function ProjectsListPage() {
                         isLoading={loadingUsers}
                         onChange={(selected) => handleSelectChange('analysts', selected)}
                         placeholder="Select analysts or add new user"
+                      />
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12} md={3}>
+                    <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                      <GroupsIcon sx={{ mr: 1 }} />
+                      Client Users
+                    </Typography>
+
+                    <Box sx={{ position: 'relative', zIndex: 9999 }}>
+                      <CreatableSelect
+                        isMulti
+                        options={clients}
+                        value={form.clients}
+                        styles={selectStyles}
+                        isLoading={loadingUsers}
+                        onChange={(selected) => handleSelectChange('clients', selected)}
+                        placeholder="Select clients or add new user"
                       />
                     </Box>
                   </Grid>
