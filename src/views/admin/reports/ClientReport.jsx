@@ -180,7 +180,7 @@ export default function ProjectsListPage() {
       field: 'title',
       headerName: 'Project Title',
       flex: 1.5,
-      minWidth: 100,
+      minWidth: 140,
       renderCell: (params) => (
         <Box>
           <Typography variant="caption">{params.row.title}</Typography>
@@ -292,7 +292,7 @@ export default function ProjectsListPage() {
       field: 'progress',
       headerName: 'Progress',
       flex: 1,
-      minWidth: 180,
+      minWidth: 120,
       renderCell: (params) => (
         <Box sx={{ width: '100%', pt: 1, pb: 2 }}>
           <Typography variant="body2" sx={{ mb: 0.5 }}>
