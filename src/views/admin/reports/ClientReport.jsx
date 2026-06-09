@@ -90,6 +90,8 @@ export default function ProjectsListPage() {
 
       const allProjects = res.data || [];
 
+      console.log(allProjects);
+
       let filteredProjects = allProjects;
 
       if (user?.role?.toLowerCase() === 'manager') {
@@ -105,8 +107,13 @@ export default function ProjectsListPage() {
         // Show only projects assigned to this analyst
         filteredProjects = allProjects.filter((project) => project.analysts?.some((analyst) => analyst?._id === user._id));
       } else if (user?.role?.toLowerCase() === 'client') {
-        // Show only published projects
-        filteredProjects = allProjects.filter((project) => project.clients?.some((client) => client?._id === user._id));
+        filteredProjects = allProjects.filter((project) => {
+          const isAssignedClient = project.clients?.some((client) => client?._id === user._id);
+
+          const hasPublishedVersion = project.versions?.some((version) => version?.status?.toLowerCase() === 'published');
+
+          return isAssignedClient && hasPublishedVersion;
+        });
       } else if (user?.role?.toLowerCase() === 'admin') {
         // Admin sees all projects
         filteredProjects = allProjects;
