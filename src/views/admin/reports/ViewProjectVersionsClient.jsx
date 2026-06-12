@@ -112,6 +112,19 @@ export default function ViewProjectVersions() {
     }
   };
 
+    const getColor = (status) => {
+    switch (status) {
+      case 'published':
+        return 'primary';
+      case 'draft':
+        return 'warning';
+      case 'archived':
+        return 'secondary';
+      default:
+        return 'primary';
+    }
+  };
+
   return (
     <Box sx={{ p: 4, background: '#f8fafc', minHeight: '100vh' }}>
       {/* ================= BACK ================= */}
@@ -124,7 +137,7 @@ export default function ViewProjectVersions() {
           mb: 4,
           borderRadius: 4,
           color: '#fff',
-          background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+          background: 'linear-gradient(90deg,rgba(84, 51, 255, 1) 0%, rgba(32, 189, 255, 1) 35%, rgba(165, 254, 203, 1) 100%)',
           overflow: 'hidden'
         }}
       >
@@ -150,15 +163,13 @@ export default function ViewProjectVersions() {
 
                 <Chip
                   label={latestVersion?.status ? latestVersion.status.charAt(0).toUpperCase() + latestVersion.status.slice(1) : 'Draft'}
-                  color={getStatusColor(latestVersion?.status)}
+                  color={getColor(latestVersion?.status)}
                 />
                 {latestVersion?.isNotify && (
-                  <Chip icon={<Notifications />} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} label="Admin Notified" color="success" />
+                  <Chip icon={<Notifications />} sx={{ bgcolor: 'rgba(255,255,255,0.15)' },{fontWeight: '900'}} label="Admin Notified" color="success" />
                 )}
               </Stack>
             </Grid>
-
-            
           </Grid>
         </Box>
       </MainCard>
@@ -183,7 +194,7 @@ export default function ViewProjectVersions() {
                   }}
                 >
                   {/* // ================= UPDATED GRID ================= */}
-                  {!(user?.role === 'client' && version.status !== 'published') && (
+                  {!(user?.role === 'client' && version.status !== 'approved for client review' && version.status !== 'published') && (
                     <Grid container spacing={3} alignItems="center">
                       {/* VERSION */}
                       <Grid item xs={12} md={2}>
@@ -251,17 +262,18 @@ export default function ViewProjectVersions() {
                           )}
 
                           {/* Archive - allowed for version manager */}
-                          {version.status !== 'archived' || user?.role !== 'client' && (
-                            <Button
-                              size="small"
-                              color="secondary"
-                              variant="outlined"
-                              startIcon={<IconArchive />}
-                              onClick={() => handleArchiveVersion(version._id, version.version)}
-                            >
-                              Archive
-                            </Button>
-                          )}
+                          {version.status !== 'archived' ||
+                            (user?.role !== 'client' && (
+                              <Button
+                                size="small"
+                                color="secondary"
+                                variant="outlined"
+                                startIcon={<IconArchive />}
+                                onClick={() => handleArchiveVersion(version._id, version.version)}
+                              >
+                                Archive
+                              </Button>
+                            ))}
 
                           {/* Delete - hide for version manager */}
                           {user?.role !== 'client' && (
@@ -301,54 +313,54 @@ export default function ViewProjectVersions() {
         {/* RIGHT SIDE */}
         <Grid item xs={12} lg={4}>
           {/* TEAM */}
-{user?.role !== 'client' && (
-          <MainCard title="Team Assignment" sx={{ mb: 4, borderRadius: 4 }}>
-            <Box mb={3}>
+          {user?.role !== 'client' && (
+            <MainCard title="Team Assignment" sx={{ mb: 4, borderRadius: 4 }}>
+              <Box mb={3}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Manager
+                </Typography>
+
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Avatar>
+                    <Person />
+                  </Avatar>
+
+                  <Box>
+                    <Typography>{project.manager?.name || 'No manager assigned'}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {project.manager?.email}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle2" gutterBottom>
-                Manager
+                Analysts
               </Typography>
 
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Avatar>
-                  <Person />
-                </Avatar>
+              <Stack spacing={2}>
+                {project.analysts?.length > 0 ? (
+                  project.analysts.map((analyst) => (
+                    <Stack key={analyst._id} direction="row" spacing={2}>
+                      <Avatar>
+                        <Groups />
+                      </Avatar>
 
-                <Box>
-                  <Typography>{project.manager?.name || 'No manager assigned'}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {project.manager?.email}
-                  </Typography>
-                </Box>
+                      <Box>
+                        <Typography>{analyst.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {analyst.email}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  ))
+                ) : (
+                  <Typography color="text.secondary">No analysts assigned</Typography>
+                )}
               </Stack>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="subtitle2" gutterBottom>
-              Analysts
-            </Typography>
-
-            <Stack spacing={2}>
-              {project.analysts?.length > 0 ? (
-                project.analysts.map((analyst) => (
-                  <Stack key={analyst._id} direction="row" spacing={2}>
-                    <Avatar>
-                      <Groups />
-                    </Avatar>
-
-                    <Box>
-                      <Typography>{analyst.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {analyst.email}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                ))
-              ) : (
-                <Typography color="text.secondary">No analysts assigned</Typography>
-              )}
-            </Stack>
-          </MainCard>
-            )}
+            </MainCard>
+          )}
           {/* METADATA */}
           <MainCard title="Version Metadata" sx={{ borderRadius: 4 }}>
             <Stack spacing={2}>

@@ -110,8 +110,9 @@ export default function ProjectsListPage() {
         filteredProjects = allProjects.filter((project) => {
           const isAssignedClient = project.clients?.some((client) => client?._id === user._id);
 
-          const hasPublishedVersion = project.versions?.some((version) => version?.status?.toLowerCase() === 'published');
-
+          const hasPublishedVersion = project.versions?.some((version) =>
+            ['approved for client review', 'published'].includes(version?.status?.toLowerCase())
+          );
           return isAssignedClient && hasPublishedVersion;
         });
       } else if (user?.role?.toLowerCase() === 'admin') {
@@ -311,7 +312,7 @@ export default function ProjectsListPage() {
       field: 'status',
       headerName: 'Status',
       flex: 0.8,
-      minWidth: 100,
+      minWidth: 120,
       renderCell: (params) => {
         const status = params.row.status || 'Active';
 
@@ -372,7 +373,7 @@ export default function ProjectsListPage() {
       field: 'actions',
       headerName: 'Actions',
       sortable: false,
-      minWidth: 120,
+      minWidth: 100,
       renderCell: (params) => {
         const user = JSON.parse(localStorage.getItem('user'));
 

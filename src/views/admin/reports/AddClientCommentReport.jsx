@@ -66,6 +66,7 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import NotesIcon from '@mui/icons-material/Notes';
 import SendIcon from '@mui/icons-material/Send';
+import ChatBubbleRoundedIcon from '@mui/icons-material/ChatBubbleRounded';
 
 import REACT_APP_BASE_URL from 'utils/api';
 
@@ -299,7 +300,7 @@ export default function ReportWorkspaceStudio() {
   const handlePublishReport = async () => {
     const result = await Swal.fire({
       title: 'Publish Report?',
-      text: 'This report will become visible to client users.',
+      text: 'This report will become Approved and Published for all.',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Yes, Publish',
@@ -337,26 +338,31 @@ export default function ReportWorkspaceStudio() {
     }
   };
 
-  const updateManagerNote = async (id, note) => {
-    const result = await Swal.fire({
-      title: 'Update Note?',
-      text: 'Do you want to save this manager note?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Update',
-      cancelButtonText: 'Cancel'
-    });
-
-    if (!result.isConfirmed) return;
+  const updateClientNote = async (id, note, replyType) => {
+    if (!note?.trim()) return;
 
     try {
-      await axios.put(`${REACT_APP_BASE_URL}/reports/report-comments/${id}/note`, {
-        managerNote: note
+      const { data } = await axios.put(`${REACT_APP_BASE_URL}/reports/report-comments/${id}/note`, {
+        user_id: user._id,
+        role: user.role,
+        note: note.trim(),
+        replyType
       });
 
+      setComments((prev) =>
+        prev.map((c) =>
+          c._id === id
+            ? {
+                ...data.comment,
+                note: '' // clear input after send
+              }
+            : c
+        )
+      );
+
       Swal.fire({
-        title: 'Updated!',
-        text: 'Manager note updated successfully.',
+        title: 'Sent!',
+        text: 'Note added successfully.',
         icon: 'success',
         timer: 1500,
         showConfirmButton: false
@@ -364,7 +370,7 @@ export default function ReportWorkspaceStudio() {
     } catch (err) {
       Swal.fire({
         title: 'Failed!',
-        text: 'Failed to update note.',
+        text: 'Failed to add note.',
         icon: 'error'
       });
     }
@@ -502,7 +508,7 @@ export default function ReportWorkspaceStudio() {
               Send Back
             </Button>
 
-            {/* <Button
+            <Button
               size="small"
               color="success"
               variant="contained"
@@ -512,8 +518,8 @@ export default function ReportWorkspaceStudio() {
                 handlePublishReport();
               }}
             >
-              Publish To Client
-            </Button> */}
+              Publish
+            </Button>
 
             <Button size="small" variant="outlined" startIcon={<Visibility />} onClick={handleTriggerPreviewWindow}>
               Preview
@@ -576,8 +582,8 @@ export default function ReportWorkspaceStudio() {
             p: 4,
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2,
+            // alignItems: 'center',
+            // gap: 2,
             bgcolor: '#eaecee'
           }}
         >
@@ -1046,7 +1052,7 @@ export default function ReportWorkspaceStudio() {
           )}
 
           {comments
-            .filter((item) => item.createdBy?._id === user?._id)
+            // .filter((item) => item.createdBy?._id === user?._id)
             .map((item, index) => (
               <Tooltip
                 key={item._id}
@@ -1078,34 +1084,48 @@ export default function ReportWorkspaceStudio() {
                     position: 'absolute',
                     right: activityOpen ? 380 : 20,
                     top: item.y,
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    bgcolor:
-                      item.status === 'resolved'
-                        ? '#10b981'
-                        : item.status === 'in-review'
-                          ? '#f59e0b'
-                          : item.status === 'rejected'
-                            ? '#ef4444'
-                            : '#4f46e5',
-                    color: '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    border: '2px solid white',
+                    width: 44,
+                    height: 44,
                     transform: 'translateY(-50%)',
+                    cursor: 'pointer',
                     transition: '.25s',
+                    zIndex: 9999,
                     '&:hover': {
                       transform: 'translateY(-50%) scale(1.12)'
-                    },
-                    zIndex: 9999
+                    }
                   }}
                   onClick={() => setActivityOpen(true)}
                 >
-                  {index + 1}
+                  <ChatBubbleRoundedIcon
+                    sx={{
+                      fontSize: 44,
+                      color:
+                        item.status === 'resolved'
+                          ? '#10b981'
+                          : item.status === 'reopen'
+                            ? '#f59e0b'
+                            : item.status === 'open'
+                              ? '#ef4444'
+                              : '#4f46e5',
+                      filter: 'drop-shadow(0 4px 10px rgba(0,0,0,.25))'
+                    }}
+                  />
+
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: '42%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: 12,
+                      lineHeight: 1,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    {index + 1}
+                  </Box>
                 </Box>
               </Tooltip>
             ))}
@@ -1172,7 +1192,7 @@ export default function ReportWorkspaceStudio() {
               )}
 
               {comments
-                .filter((item) => item.createdBy?._id === user?._id)
+                // .filter((item) => item.createdBy?._id === user?._id)
                 .map((item, index) => (
                   <Box
                     key={item._id}
@@ -1208,25 +1228,52 @@ export default function ReportWorkspaceStudio() {
                         });
                       }}
                       sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '50%',
-                        bgcolor: item.status === 'resolved' ? '#10b981' : '#4f46e5',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        color: '#fff',
-                        fontWeight: 700,
+                        position: 'relative',
+                        width: 44,
+                        height: 44,
                         cursor: 'pointer',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        transition: 'all .2s ease',
+                        '&:hover': {
+                          transform: 'scale(1.1)'
+                        }
                       }}
                     >
-                      {index + 1}
+                      <ChatBubbleRoundedIcon
+                        sx={{
+                          fontSize: 44,
+                          color:
+                            item.status === 'resolved'
+                              ? '#10b981'
+                              : item.status === 'reopen'
+                                ? '#f59e0b'
+                                : item.status === 'open'
+                                  ? '#ef4444'
+                                  : '#4f46e5',
+                          filter: 'drop-shadow(0 3px 8px rgba(0,0,0,.2))'
+                        }}
+                      />
+
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '42%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: 12,
+                          lineHeight: 1,
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        {index + 1}
+                      </Box>
                     </Box>
 
                     <Card
                       sx={{
-                        ml: 2,
+                        ml: 1,
                         flex: 1,
                         borderRadius: 3,
                         boxShadow: '0 2px 10px rgba(0,0,0,.06)',
@@ -1277,48 +1324,92 @@ export default function ReportWorkspaceStudio() {
                           </Box>
                         )}
 
-                        {/* MANAGER NOTES */}
-                        {!(user?.role === 'client') && (
-                          <Box mt={2}>
-                            <Typography fontSize={12} fontWeight={700} mb={1}>
-                              Manager Notes / Client Change Request
-                            </Typography>
+                        <Box mt={2}>
+                          {(item.notes || [])
+                            .filter((note) => note.replyType === 'client')
+                            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                            .map((note, index) => (
+                              <Box
+                                key={note._id || index}
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: note.role === 'manager' ? 'flex-start' : 'flex-end',
+                                  mb: 1
+                                }}
+                              >
+                                <Paper
+                                  elevation={1}
+                                  sx={{
+                                    p: 1.5,
+                                    maxWidth: '80%',
+                                    borderRadius: 3,
+                                    bgcolor: note.role === 'manager' ? '#f3f4f6' : '#e3f2fd'
+                                  }}
+                                >
+                                  <Typography variant="caption" fontWeight={700} color="primary">
+                                    {note.role.charAt(0).toUpperCase() + note.role.slice(1)}
+                                  </Typography>
 
-                            <Box display="flex" gap={1} alignItems="flex-start">
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      ml: 1,
+                                      color: 'success.main'
+                                    }}
+                                  >
+                                    ({note.replyType})
+                                  </Typography>
+
+                                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                                    {note.message}
+                                  </Typography>
+
+                                  <Typography
+                                    variant="caption"
+                                    display="block"
+                                    sx={{
+                                      mt: 0.5,
+                                      color: 'text.secondary'
+                                    }}
+                                  >
+                                    {new Date(note.createdAt).toLocaleString()}
+                                  </Typography>
+                                </Paper>
+                              </Box>
+                            ))}
+                        </Box>
+                        {/* MANAGER NOTES */}
+                        {/* {!(user?.role === 'client') && ( */}
+                        <Box mt={2}>
+                          <Typography fontSize={12} fontWeight={700} mb={1}>
+                            Client Notes
+                          </Typography>
+
+                          <Box display="flex" gap={1} alignItems="flex-start">
+                            {comments.map((item) => (
                               <TextField
                                 size="small"
-                                multiline
-                                rows={3}
                                 fullWidth
-                                placeholder="Add note if client requested modifications..."
-                                value={item.managerNote || ''}
+                                placeholder="Add note if any modifications..."
+                                value={item.note}
                                 onChange={(e) =>
-                                  setComments((prev) =>
-                                    prev.map((c) =>
-                                      c._id === item._id
-                                        ? {
-                                            ...c,
-                                            managerNote: e.target.value
-                                          }
-                                        : c
-                                    )
-                                  )
+                                  setComments((prev) => prev.map((c) => (c._id === item._id ? { ...c, note: e.target.value } : c)))
                                 }
                               />
+                            ))}
 
-                              <IconButton
-                                color="primary"
-                                sx={{
-                                  mt: 0.5,
-                                  border: '1px solid #ddd'
-                                }}
-                                onClick={() => updateManagerNote(item._id, item.managerNote)}
-                              >
-                                <SendIcon fontSize="small" />
-                              </IconButton>
-                            </Box>
+                            <IconButton
+                              color="primary"
+                              sx={{
+                                border: '1px solid #ddd'
+                              }}
+                              onClick={() => updateClientNote(item._id, item.note, item.replyType || 'client')}
+                            >
+                              <SendIcon fontSize="small" />
+                            </IconButton>
                           </Box>
-                        )}
+                        </Box>
+                        {/* )} */}
                         {/* FOOTER */}
 
                         <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>

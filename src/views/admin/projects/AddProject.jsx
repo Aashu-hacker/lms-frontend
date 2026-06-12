@@ -207,6 +207,7 @@ export default function AddProject() {
     dueDate: '',
     projectOwners: [],
     analysts: [],
+    clients: [],
     ngsApplications: []
   });
 
@@ -219,7 +220,8 @@ export default function AddProject() {
     if (form.title) score += 25;
     if (form.shortDescription) score += 15;
     if (form.projectOwners.length) score += 20;
-    if (form.analysts.length) score += 20;
+    if (form.analysts.length) score += 10;
+    if (form.clients.length) score += 10;
     if (form.ngsApplications.length) score += 20;
     return score;
   }, [form]);
@@ -359,6 +361,8 @@ export default function AddProject() {
         // ✅ Send NGS Applications
         ngsApplications: (form.ngsApplications || []).map((item) => item.value || item.label)
       };
+
+      console.log(payload);
 
       // ✅ Correct axios response variable
       const response = await axios.post(`${REACT_APP_BASE_URL}/projects`, payload, {

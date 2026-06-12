@@ -827,7 +827,7 @@ export default function ProjectsListPage() {
       field: 'actions',
       headerName: 'Actions',
       sortable: false,
-      minWidth: 120,
+      minWidth: 160,
       renderCell: (params) => {
         const user = JSON.parse(localStorage.getItem('user'));
 
