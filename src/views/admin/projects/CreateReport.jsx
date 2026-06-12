@@ -16,14 +16,19 @@ import {
   Divider,
   Tooltip,
   Switch,
-  FormControlLabel,
-  List,
+  FormControl,
+  InputLabel,
   Select,
   MenuItem,
+  RadioGroup,
+  Radio,
+  FormControlLabel,
+  List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  OutlinedInput,
   ToggleButtonGroup,
   ToggleButton,
   Drawer,
@@ -58,7 +63,15 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 
+import AddCommentIcon from '@mui/icons-material/AddComment';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import ReplyIcon from '@mui/icons-material/Reply';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import NotesIcon from '@mui/icons-material/Notes';
+import SendIcon from '@mui/icons-material/Send';
+import ChatBubbleRoundedIcon from '@mui/icons-material/ChatBubbleRounded';
 
 import REACT_APP_BASE_URL from 'utils/api';
 
@@ -69,7 +82,7 @@ export default function ReportWorkspaceStudio() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   // --- Core Application State Structure ---
-  const [reportName, setReportName] = useState('Market Analytics Report');
+  const [reportName, setReportName] = useState('Sample Analytics Report');
   const [header, setHeader] = useState({
     title: 'Enterprise Technical Evaluation Report',
     subTitle: 'Production Performance Data Infrastructure Audit Framework Matrix',
@@ -113,7 +126,7 @@ export default function ReportWorkspaceStudio() {
   const [activeTab, setActiveTab] = useState('component'); // 'component' | 'styling' | 'section' | 'headerFooter'
   const [selectedSectionIndex, setSelectedSectionIndex] = useState(null);
   const [selectedElementId, setSelectedElementId] = useState(null);
-
+  const [replyData, setReplyData] = useState({});
   const [activityOpen, setActivityOpen] = useState(false);
 
   const [comments, setComments] = useState([]);
@@ -556,21 +569,21 @@ export default function ReportWorkspaceStudio() {
 
   const handlePublishReport = async () => {
     const result = await Swal.fire({
-      title: 'Publish Report?',
-      text: 'Once published, this version will become available to managers and analysts.',
+      title: 'Submit for review Report?',
+      text: 'Once Submitted for review, this version will become available to managers and analysts.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#16a34a',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, Publish',
+      confirmButtonText: 'Yes, Submit',
       cancelButtonText: 'Cancel'
     });
 
     if (!result.isConfirmed) return;
     try {
       Swal.fire({
-        title: 'Publishing...',
-        text: 'Please wait while report is being published',
+        title: 'Submitting...',
+        text: 'Please wait while report is being Submitted',
         allowOutsideClick: false,
         allowEscapeKey: false,
         didOpen: () => {
@@ -591,8 +604,8 @@ export default function ReportWorkspaceStudio() {
       if (response.data.success) {
         await Swal.fire({
           icon: 'success',
-          title: 'Published Successfully',
-          text: 'Report version published successfully',
+          title: 'Submitted Successfully',
+          text: 'Report version Submitted for review successfully',
           confirmButtonColor: '#16a34a'
         });
         navigate(-1);
@@ -601,8 +614,8 @@ export default function ReportWorkspaceStudio() {
       Swal.close();
       Swal.fire({
         icon: 'error',
-        title: 'Publish Failed',
-        text: err?.response?.data?.message || 'Failed to publish report',
+        title: 'Submit for review Failed',
+        text: err?.response?.data?.message || 'Failed to Submit for review report',
         confirmButtonColor: '#d33'
       });
     }
@@ -625,6 +638,44 @@ export default function ReportWorkspaceStudio() {
 
     updatedSections[sectionIndex].elements = elementsList;
     setSections(updatedSections);
+  };
+
+  const updateAnalystNote = async (id, note, replyType) => {
+    if (!note?.trim()) return;
+
+    try {
+      const { data } = await axios.put(`${REACT_APP_BASE_URL}/reports/report-comments/${id}/note`, {
+        user_id: user._id,
+        role: user.role,
+        note: note.trim(),
+        replyType
+      });
+
+      setComments((prev) =>
+        prev.map((c) =>
+          c._id === id
+            ? {
+                ...data.comment,
+                note: '' // clear input after send
+              }
+            : c
+        )
+      );
+
+      Swal.fire({
+        title: 'Sent!',
+        text: 'Note added successfully.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      Swal.fire({
+        title: 'Failed!',
+        text: 'Failed to add note.',
+        icon: 'error'
+      });
+    }
   };
 
   // Get active configurations references
@@ -678,7 +729,7 @@ export default function ReportWorkspaceStudio() {
               Preview
             </Button>
             <Button size="small" variant="contained" color="success" startIcon={<Publish />} onClick={handlePublishReport}>
-              Publish
+              Submit for review
             </Button>
             <Button size="small" variant="text" color="error" startIcon={<ExitToApp />} onClick={() => navigate(-1)}>
               Exit
@@ -686,229 +737,7 @@ export default function ReportWorkspaceStudio() {
           </Box>
         </Toolbar>
       </AppBar>
-      <Drawer
-        anchor="right"
-        open={activityOpen}
-        onClose={() => setActivityOpen(false)}
-        PaperProps={{
-          sx: {
-            width: 420,
-            background: '#f8fafc'
-          }
-        }}
-      >
-        <Box
-          sx={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          {/* HEADER */}
 
-          <Box
-            sx={{
-              p: 2,
-              background: '#fff',
-              borderBottom: '1px solid #e5e7eb',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <Box>
-              <Typography fontWeight={700} fontSize={18}>
-                Comments Activity
-              </Typography>
-
-              <Typography fontSize={12} color="text.secondary">
-                {comments.length} Comments Added
-              </Typography>
-            </Box>
-
-            <IconButton onClick={() => setActivityOpen(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
-          {/* TIMELINE */}
-
-          <Box
-            sx={{
-              flex: 1,
-              overflowY: 'auto',
-              p: 3
-            }}
-          >
-            {comments.length === 0 && (
-              <Box textAlign="center" mt={15}>
-                <Typography color="text.secondary">No comments added</Typography>
-              </Box>
-            )}
-
-            {comments.map((item, index) => (
-              <Box
-                key={item._id}
-                sx={{
-                  display: 'flex',
-
-                  alignItems: 'flex-start',
-
-                  position: 'relative',
-
-                  pb: 4
-                }}
-              >
-                {/* timeline line */}
-
-                {index !== comments.length - 1 && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-
-                      left: 19,
-
-                      top: 40,
-
-                      width: 2,
-
-                      height: '100%',
-
-                      bgcolor: '#e2e8f0'
-                    }}
-                  />
-                )}
-
-                {/* Number Circle */}
-
-                <Box
-                  onClick={() => {
-                    document
-                      .getElementById(`comment-marker-${item._id}`)
-
-                      ?.scrollIntoView({
-                        behavior: 'smooth',
-
-                        block: 'center'
-                      });
-                  }}
-                  sx={{
-                    width: 40,
-
-                    height: 40,
-
-                    borderRadius: '50%',
-
-                    bgcolor: item.status === 'resolved' ? '#10b981' : '#4f46e5',
-
-                    display: 'flex',
-
-                    justifyContent: 'center',
-
-                    alignItems: 'center',
-
-                    color: '#fff',
-
-                    fontWeight: 700,
-
-                    cursor: 'pointer',
-
-                    flexShrink: 0
-                  }}
-                >
-                  {index + 1}
-                </Box>
-
-                <Card
-                  sx={{
-                    ml: 2,
-
-                    flex: 1,
-
-                    borderRadius: 3,
-
-                    boxShadow: '0 2px 10px rgba(0,0,0,.06)',
-
-                    border: '1px solid #e5e7eb'
-                  }}
-                >
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                      <Box>
-                        <Typography fontWeight={700} fontSize={13}>
-                          Comment #{index + 1}
-                        </Typography>
-
-                        <Typography fontSize={11} color="text.secondary">
-                          Added By:
-                          {item.createdBy?.name || 'Unknown'}
-                        </Typography>
-                      </Box>
-
-                      <Chip
-                        size="small"
-                        label={item.status === 'resolved' ? 'Resolved' : 'Open'}
-                        color={item.status === 'resolved' ? 'success' : 'warning'}
-                      />
-                    </Box>
-
-                    <Typography fontSize={13} lineHeight={1.7} mb={1}>
-                      {item.text}
-                    </Typography>
-
-                    {item.image && (
-                      <Box mt={1}>
-                        <img
-                          src={item.image}
-                          style={{
-                            width: '100%',
-
-                            maxHeight: 220,
-
-                            objectFit: 'cover',
-
-                            borderRadius: 10,
-
-                            border: '1px solid #eee'
-                          }}
-                        />
-                      </Box>
-                    )}
-
-                    <Box display="flex" justifyContent="space-between" mt={2}>
-                      <Typography fontSize={11} color="text.secondary">
-                        {new Date(item.createdAt).toLocaleString()}
-                      </Typography>
-
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color={item.status === 'resolved' ? 'success' : 'primary'}
-                        disabled={user?.role === 'analyst' && item.status === 'resolved'}
-                        onClick={() => {
-                          // Analyst can only resolve, not reopen
-
-                          if (user?.role === 'analyst' && item.status === 'resolved') {
-                            return;
-                          }
-
-                          updateCommentStatus(
-                            item._id,
-
-                            item.status === 'resolved' ? 'open' : 'resolved'
-                          );
-                        }}
-                      >
-                        {item.status === 'resolved' ? (user?.role === 'analyst' ? 'RESOLVED' : 'REOPEN') : 'RESOLVE'}
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      </Drawer>
       {/* Main Studio Split Grid Frame */}
       <Box sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
         {/* ================= 2. CENTRAL BUILDER WORKSPACE REPORT AREA (Left/Center Canvas) ================= */}
@@ -1862,54 +1691,428 @@ export default function ReportWorkspaceStudio() {
                 left: 285,
                 top: item.y,
                 transform: 'translate(-50%,-50%)',
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                bgcolor:
-                  item.status === 'resolved'
-                    ? '#10b981' // Green
-                    : item.status === 'in-review'
-                      ? '#f59e0b' // Orange
-                      : item.status === 'rejected'
-                        ? '#ef4444' // Red
-                        : '#4f46e5', // Default Open Blue
-
-                color: '#fff',
-
-                display: 'flex',
-
-                alignItems: 'center',
-
-                justifyContent: 'center',
-
-                fontWeight: 700,
-
                 cursor: 'pointer',
-
-                border: '2px solid white',
-
-                boxShadow:
-                  item.status === 'resolved'
-                    ? '0 6px 16px rgba(16,185,129,.35)'
-                    : item.status === 'rejected'
-                      ? '0 6px 16px rgba(239,68,68,.35)'
-                      : '0 6px 16px rgba(79,70,229,.30)',
-
-                transition: '.25s ease',
-
+                zIndex: 9999,
                 '&:hover': {
                   transform: 'translate(-50%,-50%) scale(1.12)'
-                },
-
-                zIndex: 9999
+                }
               }}
               onClick={() => setActivityOpen(true)}
             >
-              {index + 1}
+              <Box
+                sx={{
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <ChatBubbleRoundedIcon
+                  sx={{
+                    fontSize: 48,
+                    color:
+                      item.status === 'resolved'
+                        ? '#10b981'
+                        : item.status === 'reopen'
+                          ? '#f59e0b'
+                          : item.status === 'open'
+                            ? '#ef4444'
+                            : '#4f46e5'
+                  }}
+                />
+                <Typography
+                  sx={{
+                    position: 'absolute',
+                    color: '#fff',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    top: '40%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                >
+                  {index + 1}
+                </Typography>
+              </Box>
             </Box>
           </Tooltip>
         ))}
       </Box>
+      <Drawer
+        anchor="right"
+        open={activityOpen}
+        onClose={() => setActivityOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 420,
+            background: '#f8fafc'
+          }
+        }}
+      >
+        <Box
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          {/* HEADER */}
+
+          <Box
+            sx={{
+              p: 2,
+              background: '#fff',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <Box>
+              <Typography fontWeight={700} fontSize={18}>
+                Comments Activity
+              </Typography>
+
+              <Typography fontSize={12} color="text.secondary">
+                {comments.length} Comments Added
+              </Typography>
+            </Box>
+
+            <IconButton onClick={() => setActivityOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {/* TIMELINE */}
+
+          <Box
+            sx={{
+              flex: 1,
+              overflowY: 'auto',
+              p: 3
+            }}
+          >
+            {comments.length === 0 && (
+              <Box textAlign="center" mt={15}>
+                <Typography color="text.secondary">No comments added</Typography>
+              </Box>
+            )}
+
+            {comments.map((item, index) => (
+              <Box
+                key={item._id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  position: 'relative',
+                  pb: 4
+                }}
+              >
+                {/* timeline line */}
+
+                {index !== comments.length - 1 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: 19,
+                      top: 40,
+                      width: 2,
+                      height: '100%',
+                      bgcolor: '#e2e8f0'
+                    }}
+                  />
+                )}
+
+                {/* Number Circle */}
+
+                <Box
+                  onClick={() => {
+                    document.getElementById(`comment-marker-${item._id}`)?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'center'
+                    });
+                  }}
+                  sx={{
+                    position: 'relative',
+                    width: 44,
+                    height: 44,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    transition: 'all .2s ease',
+                    '&:hover': {
+                      transform: 'scale(1.1)'
+                    }
+                  }}
+                >
+                  <ChatBubbleRoundedIcon
+                    sx={{
+                      fontSize: 44,
+                      color:
+                        item.status === 'resolved'
+                          ? '#10b981'
+                          : item.status === 'reopen'
+                            ? '#f59e0b'
+                            : item.status === 'open'
+                              ? '#ef4444'
+                              : '#4f46e5',
+                      filter: 'drop-shadow(0 3px 8px rgba(0,0,0,.2))'
+                    }}
+                  />
+
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: '42%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: 12,
+                      lineHeight: 1,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    {index + 1}
+                  </Box>
+                </Box>
+                <Card
+                  sx={{
+                    ml: 2,
+                    flex: 1,
+                    borderRadius: 3,
+                    boxShadow: '0 2px 10px rgba(0,0,0,.06)',
+                    border: '1px solid #e5e7eb'
+                  }}
+                >
+                  <CardContent>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Box>
+                        <Typography fontWeight={700} fontSize={13}>
+                          Comment #{index + 1}
+                        </Typography>
+
+                        <Typography fontSize={11} color="text.secondary">
+                          Added By:
+                          {item.createdBy?.name || 'Unknown'}
+                        </Typography>
+                      </Box>
+
+                      <Chip
+                        size="small"
+                        label={item.status === 'resolved' ? 'Resolved' : 'Open'}
+                        color={item.status === 'resolved' ? 'success' : 'warning'}
+                      />
+                    </Box>
+
+                    <Typography fontSize={13} lineHeight={1.7} mb={1}>
+                      {item.text}
+                    </Typography>
+
+                    {item.image && (
+                      <Box mb={2}>
+                        <img
+                          src={item.image}
+                          style={{
+                            width: '100%',
+                            maxHeight: 220,
+                            objectFit: 'cover',
+                            borderRadius: 10,
+                            border: '1px solid #eee'
+                          }}
+                        />
+                      </Box>
+                    )}
+
+                    <Box mt={2}>
+                      {(item.notes || [])
+                        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                        .map((note, index) => (
+                          <Box
+                            key={note._id || index}
+                            sx={{
+                              display: 'flex',
+                              justifyContent: note.role === 'manager' ? 'flex-start' : 'flex-end',
+                              mb: 1
+                            }}
+                          >
+                            <Paper
+                              elevation={1}
+                              sx={{
+                                p: 1.5,
+                                maxWidth: '80%',
+                                borderRadius: 3,
+                                bgcolor: note.role === 'manager' ? '#f3f4f6' : '#e3f2fd'
+                              }}
+                            >
+                              <Typography variant="caption" fontWeight={700} color="primary">
+                                {note.role.charAt(0).toUpperCase() + note.role.slice(1)}
+                              </Typography>
+
+                              {note.replyType && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    ml: 1,
+                                    color: note.replyType === 'client' ? 'success.main' : 'text.secondary'
+                                  }}
+                                >
+                                  ({note.replyType})
+                                </Typography>
+                              )}
+
+                              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                                {note.message}
+                              </Typography>
+
+                              <Typography
+                                variant="caption"
+                                display="block"
+                                sx={{
+                                  mt: 0.5,
+                                  color: 'text.secondary'
+                                }}
+                              >
+                                {new Date(note.createdAt).toLocaleString()}
+                              </Typography>
+                            </Paper>
+                          </Box>
+                        ))}
+                    </Box>
+
+                    <Box mt={2}>
+                      <Typography fontSize={12} fontWeight={700} mb={1}>
+                        Analyst Notes
+                      </Typography>
+
+                      {/* Response Type Dropdown */}
+
+                      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                        <InputLabel>Response</InputLabel>
+
+                        <Select
+                          value={item.analystResponseType || ''}
+                          label="Response"
+                          onChange={(e) => {
+                            const value = e.target.value;
+
+                            setComments((prev) =>
+                              prev.map((c) =>
+                                c._id === item._id
+                                  ? {
+                                      ...c,
+                                      analystResponseType: value,
+                                      note: value
+                                    }
+                                  : c
+                              )
+                            );
+                          }}
+                        >
+                          <MenuItem value="Changes made">Changes Made</MenuItem>
+
+                          <MenuItem value="No changes required">No Changes Required</MenuItem>
+
+                          <MenuItem value="Clarification provided">Clarification Provided</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      {/* Disabled Note Text */}
+
+                      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                        <InputLabel>Remark</InputLabel>
+                        <OutlinedInput
+                          label="Remark"
+                          value={item.note || ''}
+                          onChange={(e) =>
+                            setComments((prev) =>
+                              prev.map((c) =>
+                                c._id === item._id
+                                  ? {
+                                      ...c,
+                                      note: e.target.value
+                                    }
+                                  : c
+                              )
+                            )
+                          }
+                          multiline
+                          minRows={3}
+                        />
+                      </FormControl>
+                      {/* Reply Type */}
+
+                      {/* <Typography fontSize={12} fontWeight={600} mt={2} mb={1}>
+                        Reply Type
+                      </Typography> */}
+
+                      <RadioGroup
+                        row
+                        value={item.replyType || 'internal'}
+                        onChange={(e) =>
+                          setComments((prev) =>
+                            prev.map((c) =>
+                              c._id === item._id
+                                ? {
+                                    ...c,
+                                    replyType: e.target.value
+                                  }
+                                : c
+                            )
+                          )
+                        }
+                      >
+                        <FormControlLabel value="internal" control={<Radio size="small" />} label="Internal" />
+
+                        <FormControlLabel value="client" control={<Radio size="small" />} label="Client" />
+                      </RadioGroup>
+
+                      {/* Send Button */}
+
+                      <Box display="flex" justifyContent="flex-end" mt={2}></Box>
+                    </Box>
+                    <Box display="flex" justifyContent="space-between" mt={2}>
+                      <Typography fontSize={14} mt={1} color="text.secondary">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </Typography>
+
+                      <IconButton
+                        color="primary"
+                        sx={{
+                          border: '1px solid #ddd'
+                        }}
+                        onClick={() => updateAnalystNote(item._id, item.note, item.replyType)}
+                      >
+                        <SendIcon fontSize="small" />
+                      </IconButton>
+                      {/* <Button
+                        size="small"
+                        variant="outlined"
+                        color={item.status === 'resolved' ? 'success' : 'primary'}
+                        disabled={user?.role === 'analyst' && item.status === 'resolved'}
+                        onClick={() => {
+                          // Analyst can only resolve, not reopen
+
+                          if (user?.role === 'analyst' && item.status === 'resolved') {
+                            return;
+                          }
+
+                          updateCommentStatus(
+                            item._id,
+
+                            item.status === 'resolved' ? 'open' : 'resolved'
+                          );
+                        }}
+                      >
+                        {item.status === 'resolved' ? (user?.role === 'analyst' ? 'RESOLVED' : 'REOPEN') : 'RESOLVE'}
+                      </Button> */}
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Drawer>
     </Box>
   );
 }

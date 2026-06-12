@@ -23,6 +23,7 @@ import REACT_APP_BASE_URL from 'utils/api';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
+
 export default function AuthLogin() {
   const navigate = useNavigate();
 
@@ -60,13 +61,27 @@ export default function AuthLogin() {
     try {
       const res = await axios.post(`${REACT_APP_BASE_URL}/auth/login`, form);
 
-      // ✅ Store token
-      localStorage.setItem('token', res.data.token);
+      const { token, user } = res.data;
 
-      // ✅ Store user
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      // ✅ Clear previous user data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('role');
+      localStorage.removeItem('permissions');
 
-      // ✅ Success Alert
+      // ✅ Store new login data
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('role', user.role); // adjust field name if needed
+
+      // Optional: Store permissions if API returns them
+      if (user.permissions) {
+        localStorage.setItem('permissions', JSON.stringify(user.permissions));
+      }
+
+      // ✅ Update state/context if using React Context or Redux
+      // dispatch(setUser(user));
+
       Swal.fire({
         icon: 'success',
         title: 'Login Successful',
@@ -75,15 +90,15 @@ export default function AuthLogin() {
         showConfirmButton: false
       });
 
-      // ✅ Redirect + Full Refresh for role-based menu reload
       setTimeout(() => {
-        // window.location.href = '/dashboard/default';
-        // OR:
-        navigate('/dashboard/default');
-        // window.location.reload();
+        navigate('/dashboard/default', {
+          replace: true
+        });
+
+        // Force menu reload based on new role
+        window.location.reload();
       }, 1500);
     } catch (err) {
-      // ❌ Error Alert
       Swal.fire({
         icon: 'error',
         title: 'Login Failed',

@@ -125,7 +125,7 @@ export default function ReportsDashboard() {
 
         if (!project) return false;
 
-        const isPublished = report.status?.toLowerCase() === 'published';
+        const isPublished = report.status?.toLowerCase() === setActivityOpen || 'published';
 
         const managerId = project.manager?._id || project.manager;
 

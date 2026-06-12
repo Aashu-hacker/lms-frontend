@@ -243,6 +243,8 @@ export default function ViewProjectVersions() {
         return 'warning';
       case 'archived':
         return 'secondary';
+      case 'submitted for review':
+        return 'warning';
       default:
         return 'primary';
     }
@@ -368,7 +370,11 @@ export default function ViewProjectVersions() {
                   }}
                 >
                   {/* // ================= UPDATED GRID ================= */}
-                  {!(user?.role === 'manager' && version.status !== 'published') && (
+                  {!(
+                    user?.role === 'manager' &&
+                    version.status !== 'submitted for review' &&
+                    version.status !== 'approved for client review'
+                  ) && (
                     <Grid container spacing={3} alignItems="center">
                       {/* VERSION */}
                       <Grid item xs={12} md={2}>
