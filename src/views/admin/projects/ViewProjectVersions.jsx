@@ -386,6 +386,7 @@ export default function ViewProjectVersions() {
                   {!(
                     user?.role === 'manager' &&
                     version.status !== 'submitted for review' &&
+                    version.status == 'sent_back' &&
                     version.status !== 'approved for client review'
                   ) && (
                     <Grid container spacing={3} alignItems="center">
