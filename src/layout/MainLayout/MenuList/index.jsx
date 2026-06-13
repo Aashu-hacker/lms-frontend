@@ -28,12 +28,12 @@ function MenuList() {
   // Get Logged In User
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const role = user?.role?.toLowerCase();
-  console.log(role);
+  // console.log(role);
 
   const filteredMenuItems = {
     ...menuItems,
     items: menuItems.items.map((item) => {
-      console.log(item);
+      // console.log(item);
       if (item.id === 'pages') {
         return {
           ...item,
