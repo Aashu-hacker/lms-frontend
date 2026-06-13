@@ -1052,7 +1052,7 @@ export default function ReportWorkspaceStudio() {
           )}
 
           {comments
-            // .filter((item) => item.createdBy?._id === user?._id)
+            .filter((item) => item.createdBy?._id === user?._id)
             .map((item, index) => (
               <Tooltip
                 key={item._id}
@@ -1192,7 +1192,7 @@ export default function ReportWorkspaceStudio() {
               )}
 
               {comments
-                // .filter((item) => item.createdBy?._id === user?._id)
+                .filter((item) => item.createdBy?._id === user?._id)
                 .map((item, index) => (
                   <Box
                     key={item._id}
@@ -1386,7 +1386,7 @@ export default function ReportWorkspaceStudio() {
                           </Typography>
 
                           <Box display="flex" gap={1} alignItems="flex-start">
-                            {comments.map((item) => (
+                            {/* {comments.map((item) => ( */}
                               <TextField
                                 size="small"
                                 fullWidth
@@ -1396,7 +1396,7 @@ export default function ReportWorkspaceStudio() {
                                   setComments((prev) => prev.map((c) => (c._id === item._id ? { ...c, note: e.target.value } : c)))
                                 }
                               />
-                            ))}
+                            {/* ))} */}
 
                             <IconButton
                               color="primary"

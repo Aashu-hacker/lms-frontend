@@ -1416,9 +1416,9 @@ export default function ReportWorkspaceStudio() {
                           )
                         }
                       >
-                        <FormControlLabel value="internal" control={<Radio size="small" />} label="Internal" />
+                        <FormControlLabel value="internal" control={<Radio size="small" />} disabled={item.createdBy?._id != user?._id}  label="Internal" />
 
-                        <FormControlLabel value="client" control={<Radio size="small" />} label="Client" />
+                        <FormControlLabel value="client" control={<Radio size="small" />} disabled={item.createdBy?._id === user?._id} label="Client" />
                       </RadioGroup>
 
                       {/* FOOTER */}
