@@ -8,7 +8,12 @@ import Box from '@mui/material/Box';
 // project imports
 import NavItem from './NavItem';
 import NavGroup from './NavGroup';
-import menuItems from 'menu-items';
+import getPages from '../../../menu-items/pages';
+import getDashboard from '../../../menu-items/dashboard';
+
+const menuItems = {
+  items: [getDashboard(), getPages()]
+};
 
 import { useGetMenuMaster } from 'api/menu';
 
@@ -20,16 +25,41 @@ function MenuList() {
 
   const [selectedID, setSelectedID] = useState('');
 
+  // Get Logged In User
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const role = user?.role?.toLowerCase();
+  console.log(role);
+
+  const filteredMenuItems = {
+    ...menuItems,
+    items: menuItems.items.map((item) => {
+      console.log(item);
+      if (item.id === 'pages') {
+        return {
+          ...item,
+          children: item.children.filter((child) => {
+            if (!child.roles) return true;
+            return child.roles.includes(role);
+          })
+        };
+      }
+
+      return item;
+    })
+  };
+
   const lastItem = null;
 
-  let lastItemIndex = menuItems.items.length - 1;
+  let lastItemIndex = filteredMenuItems.items.length - 1;
   let remItems = [];
   let lastItemId;
 
-  if (lastItem && lastItem < menuItems.items.length) {
-    lastItemId = menuItems.items[lastItem - 1].id;
+  if (lastItem && lastItem < filteredMenuItems.items.length) {
+    lastItemId = filteredMenuItems.items[lastItem - 1].id;
+
     lastItemIndex = lastItem - 1;
-    remItems = menuItems.items.slice(lastItem - 1, menuItems.items.length).map((item) => ({
+
+    remItems = filteredMenuItems.items.slice(lastItem - 1, filteredMenuItems.items.length).map((item) => ({
       title: item.title,
       elements: item.children,
       icon: item.icon,
@@ -39,13 +69,14 @@ function MenuList() {
     }));
   }
 
-  const navItems = menuItems.items.slice(0, lastItemIndex + 1).map((item, index) => {
+  const navItems = filteredMenuItems.items.slice(0, lastItemIndex + 1).map((item, index) => {
     switch (item.type) {
       case 'group':
         if (item.url && item.id !== lastItemId) {
           return (
             <List key={item.id}>
               <NavItem item={item} level={1} isParents setSelectedID={() => setSelectedID('')} />
+
               <Activity mode={index !== 0 ? 'visible' : 'hidden'}>
                 <Divider sx={{ py: 0.5 }} />
               </Activity>
@@ -64,6 +95,7 @@ function MenuList() {
             lastItemId={lastItemId}
           />
         );
+
       default:
         return (
           <Typography key={item.id} variant="h6" align="center" sx={{ color: 'error.main' }}>

@@ -17,9 +17,24 @@ const dashboard = {
       type: 'item',
       url: '/dashboard/default',
       icon: icons.IconDashboard,
+      roles: ['admin','analyst', 'manager', 'client'],
       breadcrumbs: false
     }
   ]
 };
 
-export default dashboard;
+const getDashboard = () => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  const role = user?.role?.toLowerCase();
+
+  return {
+    ...dashboard,
+    // children: dashboard.children.filter((menu) => {
+    //   if (!menu.roles) return true;
+    //   return menu.roles.includes(role);
+    // })
+  };
+};
+
+
+export default getDashboard;

@@ -26,18 +26,6 @@ const icons = {
   IconGitBranch
 };
 
-// ✅ Get logged-in user safely
-const getUser = () => {
-  try {
-    return JSON.parse(localStorage.getItem('user'));
-  } catch {
-    return null;
-  }
-};
-
-const user = getUser();
-const role = user?.role?.toLowerCase() || null;
-
 // ==============================|| ROLE BASED MENU ||============================== //
 
 const pages = {
@@ -220,6 +208,17 @@ const pages = {
 };
 
 // ================= FILTER ROLE BASED MENU =================
-pages.children = pages.children.filter((menu) => !menu.roles || menu.roles.includes(role));
+const getPages = () => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  const role = user?.role?.toLowerCase();
 
-export default pages;
+  return {
+    ...pages,
+    // children: pages.children.filter((menu) => {
+    //   if (!menu.roles) return true;
+    //   return menu.roles.includes(role);
+    // })
+  };
+};
+
+export default getPages;
