@@ -139,9 +139,8 @@ export default function ReportWorkspaceStudio() {
   });
 
   const [commentText, setCommentText] = useState('');
-
+  const [commentNotes, setCommentNotes] = useState({});
   const [commentImage, setCommentImage] = useState(null);
-
   const [hoverComment, setHoverComment] = useState(null);
 
   const authHeaders = {
@@ -359,6 +358,11 @@ export default function ReportWorkspaceStudio() {
             : c
         )
       );
+
+      setCommentNotes((prev) => ({
+        ...prev,
+        [item._id]: ''
+      }));
 
       Swal.fire({
         title: 'Sent!',
@@ -1333,7 +1337,7 @@ export default function ReportWorkspaceStudio() {
                                 key={note._id || index}
                                 sx={{
                                   display: 'flex',
-                                  justifyContent: note.role === 'manager' ? 'flex-start' : 'flex-end',
+                                  justifyContent: note.role === 'client' ? 'flex-start' : 'flex-end',
                                   mb: 1
                                 }}
                               >
@@ -1343,7 +1347,7 @@ export default function ReportWorkspaceStudio() {
                                     p: 1.5,
                                     maxWidth: '80%',
                                     borderRadius: 3,
-                                    bgcolor: note.role === 'manager' ? '#f3f4f6' : '#e3f2fd'
+                                    bgcolor: note.role === 'client' ? '#f3f4f6' : '#e3f2fd'
                                   }}
                                 >
                                   <Typography variant="caption" fontWeight={700} color="primary">
@@ -1384,30 +1388,28 @@ export default function ReportWorkspaceStudio() {
                           <Typography fontSize={12} fontWeight={700} mb={1}>
                             Client Notes
                           </Typography>
-
                           <Box display="flex" gap={1} alignItems="flex-start">
-                            {/* {comments.map((item) => ( */}
-                              <TextField
-                                size="small"
-                                fullWidth
-                                placeholder="Add note if any modifications..."
-                                value={item.note}
-                                onChange={(e) =>
-                                  setComments((prev) => prev.map((c) => (c._id === item._id ? { ...c, note: e.target.value } : c)))
-                                }
-                              />
-                            {/* ))} */}
+                            <TextField
+                              size="small"
+                              fullWidth
+                              placeholder="Add note if any modifications..."
+                              value={commentNotes[item._id] || ''}
+                              onChange={(e) =>
+                                setCommentNotes((prev) => ({
+                                  ...prev,
+                                  [item._id]: e.target.value
+                                }))
+                              }
+                            />
 
                             <IconButton
                               color="primary"
-                              sx={{
-                                border: '1px solid #ddd'
-                              }}
-                              onClick={() => updateClientNote(item._id, item.note, item.replyType || 'client')}
+                              sx={{ border: '1px solid #ddd' }}
+                              onClick={() => updateClientNote(item._id, commentNotes[item._id] || '', item.replyType || 'client')}
                             >
                               <SendIcon fontSize="small" />
                             </IconButton>
-                          </Box>
+                          </Box>{' '}
                         </Box>
                         {/* )} */}
                         {/* FOOTER */}
