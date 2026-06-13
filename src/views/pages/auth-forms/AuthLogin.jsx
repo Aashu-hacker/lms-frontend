@@ -96,7 +96,7 @@ export default function AuthLogin() {
         });
 
         // Force menu reload based on new role
-        window.location.reload();
+        // window.location.reload();
       }, 1500);
     } catch (err) {
       Swal.fire({
